@@ -17,7 +17,11 @@ var count = 0
 func spawnBackup() error {
 	//fetching path directory
 	wd, _ := os.Getwd()
+
+	//mounting script
 	script := fmt.Sprintf(`tell app "Terminal" to do script "cd %s && go run main.go backup"`, wd)
+
+	//execution
 	cmd := exec.Command("osascript", "-e", script)
 	return cmd.Start()
 }
