@@ -50,7 +50,6 @@ func Heart(wordlviewCh chan [N]Call, ip net.IP) {
 
 	addr, _ := net.ResolveUDPAddr("udp4", fmt.Sprintf("255.255.255.255:%d", Port))
 
-	//singleton worldview instance
 	var wv [N]Call
 
 	//once a secodn to facilitate testing - Normaly, would be 100ms
@@ -103,5 +102,31 @@ func Listener(heartbeatCh chan Heartbeat, ip net.IP) {
 		}
 
 		heartbeatCh <- hb
+	}
+}
+
+func WorldviewManager(worldviewCh chan [N]Call, heartbeatCh chan Heartbeat) {
+
+	var wv [N]Call
+
+	var floor int
+	var dir string
+
+	//taking keyboard input for tests
+	for {
+		fmt.Print("Floor and direction (e.g. '2 u'): \n")
+		fmt.Scan(&floor, &dir)
+		if floor >= 0 && floor < N {
+			switch dir {
+			case "u":
+				wv[floor].Up = !wv[floor].Up
+			case "d":
+				wv[floor].Down = !wv[floor].Down
+			default:
+				fmt.Println("Use 'u' or 'd'")
+				continue
+			}
+			worldviewCh <- wv
+		}
 	}
 }
