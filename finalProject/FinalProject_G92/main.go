@@ -20,7 +20,7 @@ func main() {
 
 	go network.Listener(heartbeatCh, ip)
 	go network.Heart(worldviewCh, ip)
-	go network.NewOrdersFromKB(orderCh, rmOrderCh)
+	go network.OrdersFromKB(orderCh, rmOrderCh)
 
 	network.WorldviewManager(worldviewCh, heartbeatCh, orderCh, rmOrderCh)
 

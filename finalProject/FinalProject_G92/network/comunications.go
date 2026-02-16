@@ -112,7 +112,7 @@ func Listener(heartbeatCh chan Heartbeat, ip net.IP) {
 	}
 }
 
-func NewOrdersFromKB(newOrder, removeOrder chan Order) {
+func OrdersFromKB(newOrder, removeOrder chan Order) {
 	//taking keyboard input for tests
 	var no Order
 
@@ -163,7 +163,6 @@ func WorldviewManager(worldviewCh chan [N]Call, heartbeatCh chan Heartbeat, newO
 					wv[i].UpSeq = hb.Worldview[i].DownSeq
 
 				}
-
 			}
 			worldviewCh <- wv
 
