@@ -34,7 +34,7 @@ type Order struct {
 type Worldview struct {
 	HallCalls  [N]HallCall
 	CabCalls   [N]bool
-	CabCallLog map[int]Node
+	CabCallLog map[int][N]bool
 }
 
 type Heartbeat struct {
@@ -69,7 +69,7 @@ func PrintHallCalls(hc [N]HallCall) {
 func PrintLobby(lobby map[int]Node) {
 	keys := make([]int, 0, len(lobby))
 	for k := range lobby {
-		if true {
+		if lobby[k].Alive {
 			keys = append(keys, k)
 		}
 	}
@@ -77,7 +77,7 @@ func PrintLobby(lobby map[int]Node) {
 
 	// Print header
 	for _, k := range keys {
-		fmt.Printf("  Node %-6d", k)
+		fmt.Printf("    Node %-6d", k)
 	}
 	fmt.Println()
 
@@ -103,7 +103,7 @@ func PrintLobby(lobby map[int]Node) {
 
 }
 
-func Heart(wordlviewCh chan Worldview, ip net.IP, id int) {
+func Heart(worldviewCh chan Worldview, ip net.IP, id int) {
 
 	conn := DialBroadcastUDP(Port)
 	defer conn.Close()
@@ -118,7 +118,7 @@ func Heart(wordlviewCh chan Worldview, ip net.IP, id int) {
 
 	for {
 		select {
-		case wv = <-wordlviewCh:
+		case wv = <-worldviewCh:
 
 		case <-ticker.C:
 			hb := Heartbeat{ID: id, IP: ip, Worldview: wv}
@@ -142,7 +142,7 @@ func Listener(heartbeatCh chan Heartbeat) {
 	conn := DialBroadcastUDP(Port)
 	defer conn.Close()
 
-	buf := make([]byte, 1024)
+	buf := make([]byte, 2048)
 
 	for {
 		n, _, err := conn.ReadFrom(buf)
@@ -237,7 +237,7 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 	var hb Heartbeat
 
 	lobby := make(map[int]Node)
-	//recovery := make(map[int][]int)
+	wv.CabCallLog = make(map[int][N]bool)
 
 	booted := false
 
@@ -255,8 +255,8 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 			node.Worldview.HallCalls = hb.Worldview.HallCalls
 
 			if !booted {
-				if storedNode, ok := hb.Worldview.CabCallLog[myId]; ok {
-					wv.CabCalls = storedNode.Worldview.CabCalls
+				if myCabCalls, ok := hb.Worldview.CabCallLog[myId]; ok {
+					wv.CabCalls = myCabCalls
 					booted = true
 				}
 			}
@@ -277,7 +277,10 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 					wv.HallCalls[i].DownSeq = hb.Worldview.HallCalls[i].DownSeq
 				}
 			}
-			wv.CabCallLog = lobby
+
+			for key := range lobby {
+				wv.CabCallLog[key] = lobby[key].Worldview.CabCalls
+			}
 			worldviewCh <- wv
 
 			PrintLobby(lobby)
