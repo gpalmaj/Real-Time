@@ -22,7 +22,7 @@ func main() {
 	heartbeatCh := make(chan network.Heartbeat)
 
 	//handles outgoing worldviews
-	worldviewCh := make(chan [network.N]network.Call)
+	worldviewCh := make(chan network.Worldview)
 
 	//handles new orders
 	orderCh := make(chan network.Order)
@@ -32,6 +32,6 @@ func main() {
 	go network.Heart(worldviewCh, ip, id)
 	go network.OrdersFromKB(orderCh, rmOrderCh)
 
-	network.WorldviewManager(worldviewCh, heartbeatCh, orderCh, rmOrderCh)
+	network.NetworkManager(id, worldviewCh, heartbeatCh, orderCh, rmOrderCh)
 
 }

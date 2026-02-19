@@ -17,47 +17,51 @@ const (
 )
 
 // move types to types.go file, possibly?
-type Call struct {
+type HallCall struct {
 	Up      bool
 	Down    bool
-	Cab     bool
 	UpSeq   int
 	DownSeq int
 }
 
 type Order struct {
+	//true Up | false Down
+	Cab   bool
 	Dir   bool
 	Floor int
+}
+
+type Worldview struct {
+	HallCalls  [N]HallCall
+	CabCalls   [N]bool
+	CabCallLog map[int][N]bool
 }
 
 type Heartbeat struct {
 	ID        int
 	IP        net.IP
-	Worldview [N]Call
+	Worldview Worldview
 }
 
 type Node struct {
-	Alive    bool
-	Lastseen time.Time
-
-	Worldview [N]Call
+	Alive     bool
+	Lastseen  time.Time
+	Worldview Worldview
 }
 
-func PrintWorldView(wv [N]Call) {
+func PrintHallCalls(hc [N]HallCall) {
 
-	for i := len(wv) - 1; i >= 0; i-- {
+	for i := len(hc) - 1; i >= 0; i-- {
 
-		up, down, cab := "-", "-", " "
-		if wv[i].Up {
+		up, down := "-", "-"
+		if hc[i].Up {
 			up = "↑"
 		}
-		if wv[i].Down {
+		if hc[i].Down {
 			down = "↓"
 		}
-		if wv[i].Cab {
-			cab = "•"
-		}
-		fmt.Printf("%d| %s | %s | %s\n", i, up, down, cab)
+
+		fmt.Printf("%d| %s | %s \n", i, up, down)
 	}
 	fmt.Println()
 }
@@ -65,7 +69,9 @@ func PrintWorldView(wv [N]Call) {
 func PrintLobby(lobby map[int]Node) {
 	keys := make([]int, 0, len(lobby))
 	for k := range lobby {
-		keys = append(keys, k)
+		if lobby[k].Alive {
+			keys = append(keys, k)
+		}
 	}
 	sort.Ints(keys)
 
@@ -78,31 +84,33 @@ func PrintLobby(lobby map[int]Node) {
 	// Print rows from top to bottom
 	for i := N - 1; i >= 0; i-- {
 		for _, k := range keys {
-			up, down, cab := "-", "-", "◦"
-			if lobby[k].Worldview[i].Up {
+			up, down, cab := "-", "-", "◯"
+			if lobby[k].Worldview.HallCalls[i].Up {
 				up = "↑"
 			}
-			if lobby[k].Worldview[i].Down {
+			if lobby[k].Worldview.HallCalls[i].Down {
 				down = "↓"
 			}
-			if lobby[k].Worldview[i].Cab {
-				down = "•"
+			if lobby[k].Worldview.CabCalls[i] {
+				cab = "⏺"
 			}
-			fmt.Printf("%d| %s | %s | %s     ", i, up, down, cab)
+
+			fmt.Printf("%d| %s | %s | %s   ", i, up, down, cab)
 		}
 		fmt.Println()
 	}
 	fmt.Println()
+
 }
 
-func Heart(wordlviewCh chan [N]Call, ip net.IP, id int) {
+func Heart(worldviewCh chan Worldview, ip net.IP, id int) {
 
 	conn := DialBroadcastUDP(Port)
 	defer conn.Close()
 
 	addr, _ := net.ResolveUDPAddr("udp4", fmt.Sprintf("255.255.255.255:%d", Port))
 
-	var wv [N]Call
+	var wv Worldview
 
 	//once a secodn to facilitate testing - Normaly, would be 100ms
 	ticker := time.NewTicker(1 * time.Second)
@@ -110,7 +118,7 @@ func Heart(wordlviewCh chan [N]Call, ip net.IP, id int) {
 
 	for {
 		select {
-		case wv = <-wordlviewCh:
+		case wv = <-worldviewCh:
 
 		case <-ticker.C:
 			hb := Heartbeat{ID: id, IP: ip, Worldview: wv}
@@ -126,18 +134,15 @@ func Heart(wordlviewCh chan [N]Call, ip net.IP, id int) {
 			if err != nil {
 				fmt.Println("Error sending heartbeat: ", err)
 			}
-
 		}
-
 	}
-
 }
 
 func Listener(heartbeatCh chan Heartbeat) {
 	conn := DialBroadcastUDP(Port)
 	defer conn.Close()
 
-	buf := make([]byte, 1024)
+	buf := make([]byte, 2048)
 
 	for {
 		n, _, err := conn.ReadFrom(buf)
@@ -177,6 +182,9 @@ func OrdersFromKB(newOrder, removeOrder chan Order) {
 			case "d":
 				no.Dir = false
 				newOrder <- no
+			case "c":
+				no.Cab = true
+				newOrder <- no
 
 			case "U":
 				no.Dir = true
@@ -185,6 +193,8 @@ func OrdersFromKB(newOrder, removeOrder chan Order) {
 				no.Dir = false
 				removeOrder <- no
 			case "C":
+				no.Cab = true
+				removeOrder <- no
 
 			}
 
@@ -194,12 +204,12 @@ func OrdersFromKB(newOrder, removeOrder chan Order) {
 
 // NEEDS TO SEND INFORMATION TO HW
 func updateLights(lobby map[int]Node) {
-	var lights [N]Call
+	var lights [N]HallCall
 	for i := range N { //for every floor
 
 		allUp := true
 		for _, elevator := range lobby {
-			if !elevator.Worldview[i].Up {
+			if !elevator.Worldview.HallCalls[i].Up {
 				allUp = false
 				break
 			}
@@ -208,7 +218,7 @@ func updateLights(lobby map[int]Node) {
 
 		allDown := true
 		for _, elevator := range lobby {
-			if !elevator.Worldview[i].Down {
+			if !elevator.Worldview.HallCalls[i].Down {
 				allDown = false
 				break
 			}
@@ -217,16 +227,24 @@ func updateLights(lobby map[int]Node) {
 	}
 
 	fmt.Println("lights:")
-	PrintWorldView(lights)
+	PrintHallCalls(lights)
 
 }
 
-func WorldviewManager(worldviewCh chan [N]Call, heartbeatCh chan Heartbeat, newOrder, removeOrder chan Order) {
+func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heartbeat, newOrder, removeOrder chan Order) {
 
-	var wv [N]Call
+	var wv Worldview
 	var hb Heartbeat
 
 	lobby := make(map[int]Node)
+	wv.CabCallLog = make(map[int][N]bool)
+
+	booted := false
+
+	//managing disconnections
+	const DisconnectTimeout = 3 * time.Second
+	disconnectTicker := time.NewTicker(1 * time.Second)
+	defer disconnectTicker.Stop()
 
 	//syncing from incomming heartbeats
 	for {
@@ -234,46 +252,94 @@ func WorldviewManager(worldviewCh chan [N]Call, heartbeatCh chan Heartbeat, newO
 		case hb = <-heartbeatCh:
 
 			node := lobby[hb.ID]
-			node.Worldview = hb.Worldview
+			node.Worldview.HallCalls = hb.Worldview.HallCalls
+
+			if !booted {
+				if myCabCalls, ok := hb.Worldview.CabCallLog[myId]; ok {
+					wv.CabCalls = myCabCalls
+					booted = true
+				}
+			}
+
+			node.Worldview.CabCalls = hb.Worldview.CabCalls
+
 			node.Lastseen = time.Now()
 			node.Alive = true
 			lobby[hb.ID] = node
 
-			//adds to lobby for monitoring
 			for i := range N {
-				if wv[i].UpSeq < hb.Worldview[i].UpSeq {
-					wv[i].Up = hb.Worldview[i].Up
-					wv[i].UpSeq = hb.Worldview[i].UpSeq
+				if wv.HallCalls[i].UpSeq < hb.Worldview.HallCalls[i].UpSeq {
+					wv.HallCalls[i].Up = hb.Worldview.HallCalls[i].Up
+					wv.HallCalls[i].UpSeq = hb.Worldview.HallCalls[i].UpSeq
 				}
-				if wv[i].DownSeq < hb.Worldview[i].DownSeq {
-					wv[i].Down = hb.Worldview[i].Down
-					wv[i].UpSeq = hb.Worldview[i].DownSeq
-
+				if wv.HallCalls[i].DownSeq < hb.Worldview.HallCalls[i].DownSeq {
+					wv.HallCalls[i].Down = hb.Worldview.HallCalls[i].Down
+					wv.HallCalls[i].DownSeq = hb.Worldview.HallCalls[i].DownSeq
 				}
 			}
+
+			for key := range lobby {
+				wv.CabCallLog[key] = lobby[key].Worldview.CabCalls
+			}
 			worldviewCh <- wv
-			//should the lights be turned on?
+
 			PrintLobby(lobby)
 			updateLights(lobby)
 
 		case no := <-newOrder:
-			if no.Dir {
-				wv[no.Floor].Up = true
-				wv[no.Floor].UpSeq++
+			if no.Cab {
+				wv.CabCalls[no.Floor] = true
+			} else if no.Dir {
+				wv.HallCalls[no.Floor].Up = true
+				wv.HallCalls[no.Floor].UpSeq++
 			} else {
-				wv[no.Floor].Down = true
-				wv[no.Floor].DownSeq++
+				wv.HallCalls[no.Floor].Down = true
+				wv.HallCalls[no.Floor].DownSeq++
 			}
+			/*
+				switch no.Dir {
+				case true:
+					wv[no.Floor].Up = true
+					wv[no.Floor].UpSeq++
+				case 1:
+					wv[no.Floor].Down = true
+					wv[no.Floor].DownSeq++
+				case 0:
+					wv[no.Floor].Cab = true
+				}
+			*/
 
 		case ro := <-removeOrder:
-			if ro.Dir {
-				wv[ro.Floor].Up = false
-				wv[ro.Floor].UpSeq++
+			if ro.Cab {
+				wv.CabCalls[ro.Floor] = false
+			} else if ro.Dir {
+				wv.HallCalls[ro.Floor].Up = false
+				wv.HallCalls[ro.Floor].UpSeq++
 			} else {
-				wv[ro.Floor].Down = false
-				wv[ro.Floor].DownSeq++
+				wv.HallCalls[ro.Floor].Down = false
+				wv.HallCalls[ro.Floor].DownSeq++
 			}
+			/*
+				switch ro.Dir {
+				case 2:
+					wv[ro.Floor].Up = false
+					wv[ro.Floor].UpSeq++
+				case 1:
+					wv[ro.Floor].Down = false
+					wv[ro.Floor].DownSeq++
+				case 0:
+					wv[ro.Floor].Cab = false
+				}
+			*/
 
+		case <-disconnectTicker.C:
+			for id, node := range lobby {
+				if node.Alive && time.Since(node.Lastseen) > DisconnectTimeout {
+					node.Alive = false
+					lobby[id] = node
+					fmt.Printf("Node %d disconnected", id)
+				}
+			}
 		}
 
 	}
