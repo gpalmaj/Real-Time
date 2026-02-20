@@ -1,5 +1,5 @@
-//go:build darwin
-// +build darwin
+//go:build linux
+// +build linux
 
 package network
 
@@ -22,10 +22,6 @@ func DialBroadcastUDP(port int) net.PacketConn {
 	syscall.SetsockoptInt(s, syscall.SOL_SOCKET, syscall.SO_BROADCAST, 1)
 	if err != nil {
 		fmt.Println("Error: SetSockOpt BROADCAST:", err)
-	}
-	syscall.SetsockoptInt(s, syscall.SOL_SOCKET, syscall.SO_REUSEPORT, 1)
-	if err != nil {
-		fmt.Println("Error: SetSockOpt REUSEPORT:", err)
 	}
 	syscall.Bind(s, &syscall.SockaddrInet4{Port: port})
 	if err != nil {
