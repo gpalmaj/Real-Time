@@ -48,6 +48,8 @@ func Init(addr string, numFloors int) {
 		panic(err.Error())
 	}
 	_initialized = true
+
+	fmt.Println("reached the end of init function")
 }
 
 func SetMotorDirection(dir MotorDirection) {

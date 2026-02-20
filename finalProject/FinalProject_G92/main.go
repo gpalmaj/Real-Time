@@ -1,6 +1,8 @@
 package main
 
 import (
+	//"FinalProject_G92/hardware"
+	"FinalProject_G92/hardware/elevio"
 	"FinalProject_G92/network"
 	"fmt"
 	"net"
@@ -53,6 +55,26 @@ func main() {
 	go network.Listener(heartbeatCh)
 	go network.Heart(worldviewCh, ip, id)
 	go network.OrdersFromKB(orderCh, rmOrderCh)
+
+	elevio.Init(ipStr+":15657", network.N)
+
+	//lobby := make(map[int]network.Node)
+
+	btnCh := make(chan elevio.ButtonEvent)
+	go elevio.PollButtons(btnCh)
+
+	flrCh := make(chan int)
+	go elevio.PollFloorSensor(flrCh)
+
+	obstrCh := make(chan bool)
+	go elevio.PollObstructionSwitch(obstrCh)
+
+	stopCh := make(chan bool)
+	go elevio.PollStopButton(stopCh)
+
+	//go hardware.HallLights(lobby)
+
+	//hardware.ExecuteOrder(btnCh)HallLights
 
 	network.NetworkManager(id, worldviewCh, heartbeatCh, orderCh, rmOrderCh)
 

@@ -1,6 +1,7 @@
 package network
 
 import (
+	"FinalProject_G92/hardware/elevio"
 	"bytes"
 	"encoding/gob"
 	"fmt"
@@ -47,6 +48,29 @@ type Node struct {
 	Alive     bool
 	Lastseen  time.Time
 	Worldview Worldview
+}
+
+func hallLights(lights [N]HallCall) {
+
+	for i := 0; i < N; i++ {
+		if lights[i].Up {
+			fmt.Println(i, "U on")
+			elevio.SetButtonLamp(elevio.BT_HallUp, i, true)
+		} else {
+			elevio.SetButtonLamp(elevio.BT_HallUp, i, false)
+			fmt.Println(i, "U off")
+
+		}
+		if lights[i].Down {
+			fmt.Println(i, "D on")
+			elevio.SetButtonLamp(elevio.BT_HallDown, i, true)
+		} else {
+			elevio.SetButtonLamp(elevio.BT_HallDown, i, false)
+			fmt.Println(i, "D off")
+		}
+
+	}
+
 }
 
 func PrintHallCalls(hc [N]HallCall) {
@@ -225,8 +249,8 @@ func UpdateLights(lobby map[int]Node) [N]HallCall {
 		lights[i].Down = allDown
 	}
 
-	fmt.Println("lights:")
-	PrintHallCalls(lights)
+	//fmt.Println("lights:")
+	//PrintHallCalls(lights)
 
 	return lights
 
@@ -285,7 +309,8 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 			worldviewCh <- wv
 
 			PrintLobby(lobby)
-			UpdateLights(lobby)
+			lights := UpdateLights(lobby)
+			hallLights(lights)
 
 		case no := <-newOrder:
 			if no.Cab {
