@@ -202,7 +202,7 @@ func OrdersFromKB(newOrder, removeOrder chan Order) {
 }
 
 // NEEDS TO SEND INFORMATION TO HW
-func updateLights(lobby map[int]Node) {
+func UpdateLights(lobby map[int]Node) [N]HallCall {
 	var lights [N]HallCall
 	for i := range N { //for every floor
 
@@ -227,6 +227,8 @@ func updateLights(lobby map[int]Node) {
 
 	fmt.Println("lights:")
 	PrintHallCalls(lights)
+
+	return lights
 
 }
 
@@ -283,7 +285,7 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 			worldviewCh <- wv
 
 			PrintLobby(lobby)
-			updateLights(lobby)
+			UpdateLights(lobby)
 
 		case no := <-newOrder:
 			if no.Cab {
