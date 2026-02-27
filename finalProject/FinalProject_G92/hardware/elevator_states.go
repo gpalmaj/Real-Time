@@ -27,7 +27,7 @@ func ElevInit(eState *ElevatorState) {
 	elevio.SetDoorOpenLamp(false)
 	eState.DoorsOpen = false
 
-	for i := 0; i < network.N; i++ {
+	for i := range network.N {
 		elevio.SetButtonLamp(elevio.BT_HallUp, i, false)
 		elevio.SetButtonLamp(elevio.BT_HallDown, i, false)
 		elevio.SetButtonLamp(elevio.BT_Cab, i, false)
