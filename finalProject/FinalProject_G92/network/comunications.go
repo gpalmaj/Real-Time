@@ -54,19 +54,19 @@ func hallLights(lights [N]HallCall) {
 
 	for i := 0; i < N; i++ {
 		if lights[i].Up {
-			fmt.Println(i, "U on")
+			//fmt.Println(i, "U on")
 			elevio.SetButtonLamp(elevio.BT_HallUp, i, true)
 		} else {
 			elevio.SetButtonLamp(elevio.BT_HallUp, i, false)
-			fmt.Println(i, "U off")
+			//fmt.Println(i, "U off")
 
 		}
 		if lights[i].Down {
-			fmt.Println(i, "D on")
+			//fmt.Println(i, "D on")
 			elevio.SetButtonLamp(elevio.BT_HallDown, i, true)
 		} else {
 			elevio.SetButtonLamp(elevio.BT_HallDown, i, false)
-			fmt.Println(i, "D off")
+			//fmt.Println(i, "D off")
 		}
 
 	}

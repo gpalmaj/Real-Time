@@ -8,7 +8,7 @@ import (
 type ElevatorState struct {
 	CurrentDirection elevio.MotorDirection
 	CurrentFloor     int
-	Busy             bool //do we need a state where the elevator will not take any orders?
+	Busy             bool //might switch to idle
 	Stopped          bool
 	DoorsOpen        bool
 	LightsOn         bool //maybe not needed, depends on light function

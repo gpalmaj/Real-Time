@@ -28,11 +28,14 @@ func HardwareManager(stateCh chan ElevatorState, orderCh, rmOrderCh chan network
 			//logic for if stopping
 			fmt.Printf("on floor %d", floor)
 			state.CurrentFloor = floor
-			stateCh <- state
+			//stateCh <- state
 		case btn := <-btnCh:
 			//Process button call
 			var no network.Order
 			no.Floor = btn.Floor
+
+			fmt.Println("button")
+
 			switch btn.Button {
 
 			case elevio.BT_HallDown:
@@ -58,7 +61,7 @@ func HardwareManager(stateCh chan ElevatorState, orderCh, rmOrderCh chan network
 			state.Stopped = stop
 
 			//stop handling
-			stateCh <- state
+			//stateCh <- state
 
 		case obstr := <-obstrCh:
 			//handle obstruction
@@ -68,7 +71,7 @@ func HardwareManager(stateCh chan ElevatorState, orderCh, rmOrderCh chan network
 			} else {
 				fmt.Println("Cleared!")
 			}
-			stateCh <- state
+			//stateCh <- state
 
 		}
 
