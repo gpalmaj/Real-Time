@@ -8,7 +8,7 @@ import (
 func HallLights(lobby map[int]network.Node) {
 	for {
 		lights := network.UpdateLights(lobby) //should be able to call this everytime as long as WorldView has not removed unfinished calls
-		for i := 0; i < network.N; i++ {
+		for i := range network.N {
 			if lights[i].Up {
 				elevio.SetButtonLamp(elevio.BT_HallUp, i, true)
 			} else {
