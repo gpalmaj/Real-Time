@@ -34,7 +34,7 @@ func main() {
 	ip := net.ParseIP(ipStr)
 	fmt.Println(ip)
 
-	//ID is usied for testing with many instences on the same machine.
+	//ID is used for testing with many instances on the same machine.
 	var id int
 	if len(os.Args) > 1 {
 		id, _ = strconv.Atoi(os.Args[1])
