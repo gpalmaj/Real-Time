@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func HardwareManager(stateCh chan ElevatorState, orderCh, rmOrderCh chan network.Order) {
+func HardwareManager(stateCh chan network.HwState, orderCh, rmOrderCh chan network.Order) {
 
 	var state ElevatorState
 	ElevInit(&state)
@@ -28,7 +28,11 @@ func HardwareManager(stateCh chan ElevatorState, orderCh, rmOrderCh chan network
 			//logic for if stopping
 			fmt.Printf("on floor %d", floor)
 			state.CurrentFloor = floor
-			stateCh <- state
+			stateCh <- network.HwState{
+				Floor:     state.CurrentFloor,
+				Direction: state.DirectionStr(),
+				Behaviour: state.BehaviourStr(),
+			}
 		case btn := <-btnCh:
 			//Process button call
 			var no network.Order
@@ -58,7 +62,11 @@ func HardwareManager(stateCh chan ElevatorState, orderCh, rmOrderCh chan network
 			state.Stopped = stop
 
 			//stop handling
-			stateCh <- state
+			stateCh <- network.HwState{
+				Floor:     state.CurrentFloor,
+				Direction: state.DirectionStr(),
+				Behaviour: state.BehaviourStr(),
+			}
 
 		case obstr := <-obstrCh:
 			//handle obstruction
@@ -68,7 +76,11 @@ func HardwareManager(stateCh chan ElevatorState, orderCh, rmOrderCh chan network
 			} else {
 				fmt.Println("Cleared!")
 			}
-			stateCh <- state
+			stateCh <- network.HwState{
+				Floor:     state.CurrentFloor,
+				Direction: state.DirectionStr(),
+				Behaviour: state.BehaviourStr(),
+			}
 
 		}
 

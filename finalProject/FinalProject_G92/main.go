@@ -57,12 +57,12 @@ func main() {
 	go network.Heart(worldviewCh, ip, id)
 	go network.OrdersFromKB(orderCh, rmOrderCh)
 
-	stateCh := make(chan hardware.ElevatorState)
+	stateCh := make(chan network.HwState)
 
 	elevio.Init(ipStr+":15657", network.N)
 
 	go hardware.HardwareManager(stateCh, orderCh, rmOrderCh)
 
-	network.NetworkManager(id, worldviewCh, heartbeatCh, orderCh, rmOrderCh)
+	network.NetworkManager(id, worldviewCh, heartbeatCh, orderCh, rmOrderCh, stateCh)
 
 }

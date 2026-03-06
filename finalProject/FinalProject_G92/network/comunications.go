@@ -36,6 +36,9 @@ type Worldview struct {
 	HallCalls  [N]HallCall
 	CabCalls   [N]bool
 	CabCallLog map[int][N]bool
+	Floor      int
+	Direction  string
+	Behaviour  string
 }
 
 type Heartbeat struct {
@@ -48,6 +51,12 @@ type Node struct {
 	Alive     bool
 	Lastseen  time.Time
 	Worldview Worldview
+}
+
+type HwState struct {
+	Floor     int
+	Direction string
+	Behaviour string
 }
 
 func hallLights(lights [N]HallCall) {
@@ -226,7 +235,7 @@ func OrdersFromKB(newOrder, removeOrder chan Order) {
 }
 
 // NEEDS TO SEND INFORMATION TO HW
-func UpdateLights(lobby map[int]Node) [N]HallCall {
+func HallConsensuss(lobby map[int]Node) [N]HallCall {
 	var lights [N]HallCall
 	for i := range N { //for every floor
 
@@ -256,7 +265,7 @@ func UpdateLights(lobby map[int]Node) [N]HallCall {
 
 }
 
-func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heartbeat, newOrder, removeOrder chan Order) {
+func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heartbeat, newOrder, removeOrder chan Order, stateCh chan HwState) {
 
 	var wv Worldview
 	var hb Heartbeat
@@ -309,7 +318,7 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 			worldviewCh <- wv
 
 			PrintLobby(lobby)
-			lights := UpdateLights(lobby)
+			lights := HallConsensuss(lobby)
 			hallLights(lights)
 
 		case no := <-newOrder:
@@ -342,6 +351,11 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 					fmt.Printf("Node %d disconnected", id)
 				}
 			}
+		case state := <-stateCh:
+			wv.Floor = state.Floor
+			wv.Direction = state.Direction
+			wv.Behaviour = state.Behaviour
+
 		}
 
 	}
