@@ -327,6 +327,9 @@ func AssignHallRequests(lobby map[int]Node) (map[string][][2]bool, error) {
 func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heartbeat, newOrder, removeOrder chan Order, stateCh chan HwState) {
 
 	var wv Worldview
+	wv.Direction = "stop"
+	wv.Behaviour = "idle"
+
 	var hb Heartbeat
 
 	lobby := make(map[int]Node)
