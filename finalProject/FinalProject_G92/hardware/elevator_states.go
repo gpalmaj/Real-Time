@@ -1,17 +1,17 @@
 package hardware
 
 import (
+	"FinalProject_G92/config"
 	"FinalProject_G92/hardware/elevio"
-	"FinalProject_G92/network"
 )
 
 type ElevatorState struct {
 	CurrentDirection elevio.MotorDirection
 	CurrentFloor     int
-	Busy             bool //do we need a state where the elevator will not take any orders?
+	Busy             bool
 	Stopped          bool
 	DoorsOpen        bool
-	LightsOn         bool //maybe not needed, depends on light function
+	LightsOn         bool
 }
 
 func ElevInit(eState *ElevatorState) {
@@ -20,14 +20,14 @@ func ElevInit(eState *ElevatorState) {
 
 	eState.CurrentFloor = elevio.GetFloor()
 
-	eState.Busy = false //will the program continue orders when restarted?
+	eState.Busy = false
 
 	eState.Stopped = elevio.GetStop()
 
 	elevio.SetDoorOpenLamp(false)
 	eState.DoorsOpen = false
 
-	for i := 0; i < network.N; i++ {
+	for i := 0; i < config.N; i++ {
 		elevio.SetButtonLamp(elevio.BT_HallUp, i, false)
 		elevio.SetButtonLamp(elevio.BT_HallDown, i, false)
 		elevio.SetButtonLamp(elevio.BT_Cab, i, false)
