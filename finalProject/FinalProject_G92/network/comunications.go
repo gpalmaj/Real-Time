@@ -314,7 +314,7 @@ func AssignHallRequests(lobby map[int]Node) (map[string][][2]bool, error) {
 		return nil, err
 	}
 
-	ret, err := exec.Command("hall_request_assigner", "-i", string(jsonBytes)).CombinedOutput()
+	ret, err := exec.Command("hall_request_assigner", "--includeCab", "-i", string(jsonBytes)).CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", err, string(ret))
 	}
@@ -327,9 +327,6 @@ func AssignHallRequests(lobby map[int]Node) (map[string][][2]bool, error) {
 func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heartbeat, newOrder, removeOrder chan Order, stateCh chan HwState) {
 
 	var wv Worldview
-	wv.Direction = "stop"
-	wv.Behaviour = "idle"
-
 	var hb Heartbeat
 
 	lobby := make(map[int]Node)
@@ -392,6 +389,20 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 				for floor, req := range target {
 					if req[0] || req[1] {
 						fmt.Printf("Floor %d: Up=%v Down=%v\n", floor, req[0], req[1])
+					}
+				}
+
+				myAssigned := assigned[strconv.Itoa(myId)]
+				bestFloor := -1
+				for floor, req := range myAssigned {
+					if req[0] || req[1] {
+						if bestFloor == -1 {
+							bestFloor = floor
+						} else if wv.Direction == "up" && floor > wv.Floor && floor < bestFloor {
+							bestFloor = floor
+						} else if wv.Direction == "down" && floor < wv.Floor && floor > bestFloor {
+							bestFloor = floor
+						}
 					}
 				}
 			}
