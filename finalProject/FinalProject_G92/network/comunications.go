@@ -63,19 +63,19 @@ func hallLights(lights [N]HallCall) {
 
 	for i := 0; i < N; i++ {
 		if lights[i].Up {
-			fmt.Println(i, "U on")
+			//fmt.Println(i, "U on")
 			elevio.SetButtonLamp(elevio.BT_HallUp, i, true)
 		} else {
 			elevio.SetButtonLamp(elevio.BT_HallUp, i, false)
-			fmt.Println(i, "U off")
+			//fmt.Println(i, "U off")
 
 		}
 		if lights[i].Down {
-			fmt.Println(i, "D on")
+			//fmt.Println(i, "D on")
 			elevio.SetButtonLamp(elevio.BT_HallDown, i, true)
 		} else {
 			elevio.SetButtonLamp(elevio.BT_HallDown, i, false)
-			fmt.Println(i, "D off")
+			//fmt.Println(i, "D off")
 		}
 
 	}
@@ -133,6 +133,11 @@ func PrintLobby(lobby map[int]Node) {
 		fmt.Println()
 	}
 	fmt.Println()
+
+	for i := range keys {
+		k := keys[i]
+		fmt.Printf("Node %d: Floor %d, Dir %s, Behav %s\n", k, lobby[k].Worldview.Floor, lobby[k].Worldview.Direction, lobby[k].Worldview.Behaviour)
+	}
 }
 
 func Heart(worldviewCh chan Worldview, ip net.IP, id int) {
@@ -235,7 +240,7 @@ func OrdersFromKB(newOrder, removeOrder chan Order) {
 }
 
 // NEEDS TO SEND INFORMATION TO HW
-func HallConsensuss(lobby map[int]Node) [N]HallCall {
+func HallConsensus(lobby map[int]Node) [N]HallCall {
 	var lights [N]HallCall
 	for i := range N { //for every floor
 
@@ -296,6 +301,9 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 			}
 
 			node.Worldview.CabCalls = hb.Worldview.CabCalls
+			node.Worldview.Floor = hb.Worldview.Floor
+			node.Worldview.Direction = hb.Worldview.Direction
+			node.Worldview.Behaviour = hb.Worldview.Behaviour
 
 			node.Lastseen = time.Now()
 			node.Alive = true
@@ -318,7 +326,7 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 			worldviewCh <- wv
 
 			PrintLobby(lobby)
-			lights := HallConsensuss(lobby)
+			lights := HallConsensus(lobby)
 			hallLights(lights)
 
 		case no := <-newOrder:
@@ -355,6 +363,7 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 			wv.Floor = state.Floor
 			wv.Direction = state.Direction
 			wv.Behaviour = state.Behaviour
+			fmt.Printf("Updating state: Floor %d, Dir %s, Behav %s\n", wv.Floor, wv.Direction, wv.Behaviour)
 
 		}
 
