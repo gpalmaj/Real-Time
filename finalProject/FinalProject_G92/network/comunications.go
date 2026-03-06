@@ -4,9 +4,12 @@ import (
 	"FinalProject_G92/hardware/elevio"
 	"bytes"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"net"
+	"os/exec"
 	"sort"
+	"strconv"
 	"time"
 )
 
@@ -57,6 +60,18 @@ type HwState struct {
 	Floor     int
 	Direction string
 	Behaviour string
+}
+
+type HRAElevState struct {
+	Behaviour   string `json:"behaviour"`
+	Floor       int    `json:"floor"`
+	Direction   string `json:"direction"`
+	CabRequests []bool `json:"cabRequests"`
+}
+
+type HRAInput struct {
+	HallRequests [][2]bool               `json:"hallRequests"`
+	States       map[string]HRAElevState `json:"states"`
 }
 
 func hallLights(lights [N]HallCall) {
@@ -270,6 +285,45 @@ func HallConsensus(lobby map[int]Node) [N]HallCall {
 
 }
 
+func AssignHallRequests(lobby map[int]Node) (map[string][][2]bool, error) {
+
+	consensus := HallConsensus(lobby)
+	hallRequests := make([][2]bool, N)
+
+	for i, hc := range consensus {
+		hallRequests[i] = [2]bool{hc.Up, hc.Down}
+	}
+
+	states := make(map[string]HRAElevState)
+	for id, node := range lobby {
+		if node.Alive {
+			cabSlice := make([]bool, N)
+			copy(cabSlice, node.Worldview.CabCalls[:])
+			states[strconv.Itoa(id)] = HRAElevState{
+				Behaviour:   node.Worldview.Behaviour,
+				Floor:       node.Worldview.Floor,
+				Direction:   node.Worldview.Direction,
+				CabRequests: cabSlice,
+			}
+		}
+	}
+
+	input := HRAInput{HallRequests: hallRequests, States: states}
+	jsonBytes, err := json.Marshal(input)
+	if err != nil {
+		return nil, err
+	}
+
+	ret, err := exec.Command("hall_request_assigner", "-i", string(jsonBytes)).CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", err, string(ret))
+	}
+
+	output := make(map[string][][2]bool)
+	err = json.Unmarshal(ret, &output)
+	return output, err
+}
+
 func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heartbeat, newOrder, removeOrder chan Order, stateCh chan HwState) {
 
 	var wv Worldview
@@ -328,6 +382,16 @@ func NetworkManager(myId int, worldviewCh chan Worldview, heartbeatCh chan Heart
 			PrintLobby(lobby)
 			lights := HallConsensus(lobby)
 			hallLights(lights)
+
+			assigned, err := AssignHallRequests(lobby)
+			if err == nil {
+				target := assigned[strconv.Itoa(myId)]
+				for floor, req := range target {
+					if req[0] || req[1] {
+						fmt.Printf("Floor %d: Up=%v Down=%v\n", floor, req[0], req[1])
+					}
+				}
+			}
 
 		case no := <-newOrder:
 			if no.Cab {
