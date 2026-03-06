@@ -7,6 +7,8 @@ import (
 	"sort"
 )
 
+//testing on my rp
+
 func PrintHallCalls(hc [config.N]types.HallCall) {
 	for i := len(hc) - 1; i >= 0; i-- {
 		up, down := "-", "-"
