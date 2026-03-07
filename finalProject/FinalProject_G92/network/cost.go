@@ -38,6 +38,8 @@ func Cost(
 			simDir = 0
 		}
 
+		simDir = chooseDirection(simFloor, simDir, localOrders)
+
 		//Simulation arrived
 		if simDir == 0 {
 			return cost
@@ -45,21 +47,19 @@ func Cost(
 
 		//Simulation travels up or down
 		if simDir == 1 {
-			//adds time between floors cost
-			cost += int(config.BetweenFloorsDuration)
 			simFloor++
 		} else {
-			//adds time between floors cost
-			cost += int(config.BetweenFloorsDuration)
 			simFloor--
 		}
 
-		cost++
+		//adds time between floors cost
+		cost += int(config.BetweenFloorsDuration)
 
 	}
 
 }
 
+// stops if there is a matching call there
 func shouldStop(floor, dir int, orders [config.N][3]bool) bool {
 	switch dir {
 	case 1:
@@ -72,6 +72,7 @@ func shouldStop(floor, dir int, orders [config.N][3]bool) bool {
 	return true
 }
 
+// see where it has to go next
 func chooseDirection(floor, dir int, orders [config.N][3]bool) int {
 	switch {
 	case ordersAbove(floor, orders) && (dir == 1 || dir == 0):
