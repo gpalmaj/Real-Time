@@ -2,6 +2,7 @@ package network
 
 import (
 	"FinalProject_G92/config"
+	"FinalProject_G92/debug"
 	"FinalProject_G92/models"
 	"time"
 )
@@ -42,6 +43,8 @@ func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh cha
 			case lightsCh <- ComputeHallLights(lobby):
 			default:
 			}
+
+			debug.PrintLobby(lobby)
 
 		case no := <-newOrder:
 			if no.Cab {
