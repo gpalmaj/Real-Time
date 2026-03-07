@@ -1,6 +1,8 @@
 package network
 
-import "FinalProject_G92/config"
+import (
+	"FinalProject_G92/config"
+)
 
 func Cost(
 	floor, direction, targetFloor, targetDir int,
@@ -54,7 +56,7 @@ func Cost(
 
 		//adds time between floors cost
 		cost += int(config.BetweenFloorsDuration)
-
+		//INFO time is in nanoseconds, so very high number there. Investigate if issues.
 	}
 
 }
