@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func HardwareManager(orderCh, rmOrderCh chan models.Order) {
+func HardwareManager(orderCh, rmOrderCh chan models.Order, statusCh chan models.StatusMessage) {
 
 	var fsm ElevatorFSM
 	ElevInit(&fsm)
@@ -44,6 +44,8 @@ func HardwareManager(orderCh, rmOrderCh chan models.Order) {
 				rmOrderCh <- models.Order{Floor: floor, Cab: true}
 			}
 
+			statusCh <- models.StatusMessage{Floor: floor, Direction: int(fsm.Direction), Operational: true}
+
 		case btn := <-btnCh:
 			fmt.Printf("Button: floor %d, type %d\n", btn.Floor, btn.Button)
 
@@ -66,6 +68,7 @@ func HardwareManager(orderCh, rmOrderCh chan models.Order) {
 			if stop {
 				fsm.OnStopButton()
 			}
+			statusCh <- models.StatusMessage{Floor: fsm.Floor, Direction: int(fsm.Direction), Operational: !stop}
 
 		case obstr := <-obstrCh:
 			if obstr {
@@ -73,6 +76,7 @@ func HardwareManager(orderCh, rmOrderCh chan models.Order) {
 			} else {
 				fmt.Println("Obstruction cleared")
 			}
+			statusCh <- models.StatusMessage{Floor: fsm.Floor, Direction: int(fsm.Direction), Operational: !obstr}
 		}
 	}
 }

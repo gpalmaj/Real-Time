@@ -35,13 +35,14 @@ func main() {
 	orderCh := make(chan models.Order)
 	rmOrderCh := make(chan models.Order)
 	lightsCh := make(chan [config.N]models.HallCall)
+	statusCh := make(chan models.StatusMessage)
 
 	// launch goroutines
 	go network.HeartbeatListener(heartbeatCh)
 	go network.HeartbeatSender(worldviewCh, ip, id)
 	go debug.OrdersFromKB(orderCh, rmOrderCh)
 	go hardware.HallLights(lightsCh)
-	go hardware.HardwareManager(orderCh, rmOrderCh)
+	go hardware.HardwareManager(orderCh, rmOrderCh, statusCh)
 
-	network.NetworkManager(id, worldviewCh, heartbeatCh, orderCh, rmOrderCh, lightsCh)
+	network.NetworkManager(id, worldviewCh, heartbeatCh, orderCh, rmOrderCh, lightsCh, statusCh)
 }

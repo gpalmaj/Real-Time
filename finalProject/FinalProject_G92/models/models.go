@@ -19,10 +19,17 @@ type Order struct {
 	Floor int
 }
 
+type StatusMessage struct {
+	Floor       int
+	Direction   int
+	Operational bool
+}
+
 type Worldview struct {
 	HallCalls  [config.N]HallCall
 	CabCalls   [config.N]bool
 	CabCallLog map[int][config.N]bool
+	Status     StatusMessage
 }
 
 type Heartbeat struct {

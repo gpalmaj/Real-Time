@@ -14,9 +14,9 @@ const (
 	Moving   FSMState = 1
 	DoorOpen FSMState = 2
 	Stopped  FSMState = 3
-
-	OrderTypes = 3
 )
+
+const OrderTypes = 3
 
 type ElevatorFSM struct {
 	State     FSMState

@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh chan models.Heartbeat, newOrder, removeOrder chan models.Order, lightsCh chan<- [config.N]models.HallCall) {
+func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh chan models.Heartbeat, newOrder, removeOrder chan models.Order, lightsCh chan<- [config.N]models.HallCall, statusCh chan models.StatusMessage) {
 
 	var wv models.Worldview
 	lobby := make(map[int]models.Node)
@@ -23,7 +23,7 @@ func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh cha
 		case hb := <-heartbeatCh:
 			node := lobby[hb.ID]
 			node.Worldview.HallCalls = hb.Worldview.HallCalls
-
+			node.Worldview.Status = hb.Worldview.Status
 			if !booted {
 				if myCabCalls, ok := hb.Worldview.CabCallLog[myId]; ok {
 					wv.CabCalls = myCabCalls
@@ -68,6 +68,8 @@ func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh cha
 				wv.HallCalls[ro.Floor].DownSeq++
 			}
 
+		case sm := <-statusCh:
+			wv.Status = sm
 		case <-disconnectTicker.C:
 			DetectDisconnections(lobby, config.DisconnectTimeout)
 		}
