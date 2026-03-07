@@ -11,4 +11,6 @@ const (
 	DisconnectTimeout = 3 * time.Second
 	// HeartbeatInterval is how often heartbeats are sent
 	HeartbeatInterval = 1 * time.Second
+	//DoorOpenDuratino is how much time the door stays open
+	DoorOpenDuration = 3 * time.Second
 )

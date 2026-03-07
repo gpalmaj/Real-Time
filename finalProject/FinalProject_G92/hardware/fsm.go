@@ -22,10 +22,8 @@ type ElevatorFSM struct {
 	State     FSMState
 	Floor     int
 	Direction elevio.MotorDirection
-	Orders    [config.N][3]bool // floor x button type
+	Orders    [config.N][OrderTypes]bool // floor x button type
 }
-
-const doorOpenDuration = 3 * time.Second
 
 func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
 	fsm.Orders[floor][btn] = true
@@ -55,7 +53,7 @@ func (fsm *ElevatorFSM) OnFloorArrival(floor int) {
 		fsm.clearOrdersAtFloor()
 
 		go func() {
-			time.Sleep(doorOpenDuration)
+			time.Sleep(config.DoorOpenDuration)
 			elevio.SetDoorOpenLamp(false)
 			fsm.chooseDirectionAndMove()
 		}()

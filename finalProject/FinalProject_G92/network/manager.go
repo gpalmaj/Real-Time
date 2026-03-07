@@ -38,8 +38,10 @@ func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh cha
 			MergeWorldview(&wv, hb.Worldview)
 			UpdateCabCallLog(&wv, lobby)
 			worldviewCh <- wv
-
-			lightsCh <- ComputeHallLights(lobby)
+			select {
+			case lightsCh <- ComputeHallLights(lobby):
+			default:
+			}
 
 		case no := <-newOrder:
 			if no.Cab {
