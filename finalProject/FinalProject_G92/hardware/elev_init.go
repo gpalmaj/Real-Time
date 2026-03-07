@@ -15,7 +15,7 @@ func ElevInit(eState *ElevatorFSM) {
 
 	elevio.SetDoorOpenLamp(false)
 
-	for i := 0; i < config.N; i++ {
+	for i := range config.N {
 		elevio.SetButtonLamp(elevio.BT_HallUp, i, false)
 		elevio.SetButtonLamp(elevio.BT_HallDown, i, false)
 		elevio.SetButtonLamp(elevio.BT_Cab, i, false)

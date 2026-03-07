@@ -14,6 +14,8 @@ const (
 	Moving   FSMState = 1
 	DoorOpen FSMState = 2
 	Stopped  FSMState = 3
+
+	OrderTypes = 3
 )
 
 type ElevatorFSM struct {
@@ -83,7 +85,7 @@ func (fsm *ElevatorFSM) shouldStop() bool {
 }
 
 func (fsm *ElevatorFSM) clearOrdersAtFloor() {
-	for btn := 0; btn < 3; btn++ {
+	for btn := range OrderTypes {
 		fsm.Orders[fsm.Floor][btn] = false
 		elevio.SetButtonLamp(elevio.ButtonType(btn), fsm.Floor, false)
 	}
@@ -116,7 +118,7 @@ func (fsm *ElevatorFSM) chooseDirectionAndMove() {
 
 func (fsm *ElevatorFSM) ordersAbove() bool {
 	for f := fsm.Floor + 1; f < config.N; f++ {
-		for btn := 0; btn < 3; btn++ {
+		for btn := range OrderTypes {
 			if fsm.Orders[f][btn] {
 				return true
 			}
@@ -127,7 +129,7 @@ func (fsm *ElevatorFSM) ordersAbove() bool {
 
 func (fsm *ElevatorFSM) ordersBelow() bool {
 	for f := 0; f < fsm.Floor; f++ {
-		for btn := 0; btn < 3; btn++ {
+		for btn := range OrderTypes {
 			if fsm.Orders[f][btn] {
 				return true
 			}
