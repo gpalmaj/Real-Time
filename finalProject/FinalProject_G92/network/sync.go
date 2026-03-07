@@ -21,8 +21,9 @@ func MergeWorldview(local *models.Worldview, remote models.Worldview) {
 }
 
 func UpdateCabCallLog(wv *models.Worldview, lobby map[int]models.Node) {
+	newLog := make(map[int][config.N]bool, len(lobby))
 	for key := range lobby {
-		wv.CabCallLog[key] = lobby[key].Worldview.CabCalls
+		newLog[key] = lobby[key].Worldview.CabCalls
 	}
 }
 
