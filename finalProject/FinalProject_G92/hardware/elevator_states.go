@@ -5,32 +5,19 @@ import (
 	"FinalProject_G92/hardware/elevio"
 )
 
-type ElevatorState struct {
-	CurrentDirection elevio.MotorDirection
-	CurrentFloor     int
-	Busy             bool
-	Stopped          bool
-	DoorsOpen        bool
-	LightsOn         bool
-}
-
-func ElevInit(eState *ElevatorState) {
+func ElevInit(eState *ElevatorFSM) {
 	elevio.SetMotorDirection(elevio.MD_Stop)
-	eState.CurrentDirection = elevio.MD_Stop
+	eState.Direction = elevio.MD_Stop
 
-	eState.CurrentFloor = elevio.GetFloor()
+	eState.Floor = elevio.GetFloor()
 
-	eState.Busy = false
-
-	eState.Stopped = elevio.GetStop()
+	eState.State = Idle
 
 	elevio.SetDoorOpenLamp(false)
-	eState.DoorsOpen = false
 
 	for i := 0; i < config.N; i++ {
 		elevio.SetButtonLamp(elevio.BT_HallUp, i, false)
 		elevio.SetButtonLamp(elevio.BT_HallDown, i, false)
 		elevio.SetButtonLamp(elevio.BT_Cab, i, false)
 	}
-	eState.LightsOn = false
 }

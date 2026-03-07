@@ -2,12 +2,12 @@ package network
 
 import (
 	"FinalProject_G92/config"
-	"FinalProject_G92/types"
+	"FinalProject_G92/models"
 	"fmt"
 	"time"
 )
 
-func MergeWorldview(local *types.Worldview, remote types.Worldview) {
+func MergeWorldview(local *models.Worldview, remote models.Worldview) {
 	for i := range config.N {
 		if local.HallCalls[i].UpSeq < remote.HallCalls[i].UpSeq {
 			local.HallCalls[i].Up = remote.HallCalls[i].Up
@@ -20,14 +20,14 @@ func MergeWorldview(local *types.Worldview, remote types.Worldview) {
 	}
 }
 
-func UpdateCabCallLog(wv *types.Worldview, lobby map[int]types.Node) {
+func UpdateCabCallLog(wv *models.Worldview, lobby map[int]models.Node) {
 	for key := range lobby {
 		wv.CabCallLog[key] = lobby[key].Worldview.CabCalls
 	}
 }
 
-func ComputeHallLights(lobby map[int]types.Node) [config.N]types.HallCall {
-	var lights [config.N]types.HallCall
+func ComputeHallLights(lobby map[int]models.Node) [config.N]models.HallCall {
+	var lights [config.N]models.HallCall
 	for i := range config.N {
 		allUp := true
 		for _, elevator := range lobby {
@@ -50,7 +50,7 @@ func ComputeHallLights(lobby map[int]types.Node) [config.N]types.HallCall {
 	return lights
 }
 
-func DetectDisconnections(lobby map[int]types.Node, timeout time.Duration) {
+func DetectDisconnections(lobby map[int]models.Node, timeout time.Duration) {
 	for id, node := range lobby {
 		if node.Alive && time.Since(node.Lastseen) > timeout {
 			node.Alive = false

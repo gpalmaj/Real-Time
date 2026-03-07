@@ -2,14 +2,14 @@ package debug
 
 import (
 	"FinalProject_G92/config"
-	"FinalProject_G92/types"
+	"FinalProject_G92/models"
 	"fmt"
 	"sort"
 )
 
 //testing on my rp
 
-func PrintHallCalls(hc [config.N]types.HallCall) {
+func PrintHallCalls(hc [config.N]models.HallCall) {
 	for i := len(hc) - 1; i >= 0; i-- {
 		up, down := "-", "-"
 		if hc[i].Up {
@@ -23,7 +23,7 @@ func PrintHallCalls(hc [config.N]types.HallCall) {
 	fmt.Println()
 }
 
-func PrintLobby(lobby map[int]types.Node) {
+func PrintLobby(lobby map[int]models.Node) {
 	keys := make([]int, 0, len(lobby))
 	for k := range lobby {
 		if lobby[k].Alive {
@@ -56,8 +56,8 @@ func PrintLobby(lobby map[int]types.Node) {
 	fmt.Println()
 }
 
-func OrdersFromKB(newOrder, removeOrder chan types.Order) {
-	var no types.Order
+func OrdersFromKB(newOrder, removeOrder chan models.Order) {
+	var no models.Order
 	var floor int
 	var dir string
 

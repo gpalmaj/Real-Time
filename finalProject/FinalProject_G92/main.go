@@ -5,8 +5,8 @@ import (
 	"FinalProject_G92/debug"
 	"FinalProject_G92/hardware"
 	"FinalProject_G92/hardware/elevio"
+	"FinalProject_G92/models"
 	"FinalProject_G92/network"
-	"FinalProject_G92/types"
 	"fmt"
 	"net"
 	"os"
@@ -30,11 +30,11 @@ func main() {
 	}
 
 	// channels
-	heartbeatCh := make(chan types.Heartbeat)
-	worldviewCh := make(chan types.Worldview)
-	orderCh := make(chan types.Order)
-	rmOrderCh := make(chan types.Order)
-	lightsCh := make(chan [config.N]types.HallCall)
+	heartbeatCh := make(chan models.Heartbeat)
+	worldviewCh := make(chan models.Worldview)
+	orderCh := make(chan models.Order)
+	rmOrderCh := make(chan models.Order)
+	lightsCh := make(chan [config.N]models.HallCall)
 
 	// launch goroutines
 	go network.HeartbeatListener(heartbeatCh)

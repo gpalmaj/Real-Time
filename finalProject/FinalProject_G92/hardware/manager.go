@@ -2,16 +2,14 @@ package hardware
 
 import (
 	"FinalProject_G92/hardware/elevio"
-	"FinalProject_G92/types"
+	"FinalProject_G92/models"
 	"fmt"
 )
 
-func HardwareManager(orderCh, rmOrderCh chan types.Order) {
-	var state ElevatorState
-	ElevInit(&state)
+func HardwareManager(orderCh, rmOrderCh chan models.Order) {
 
 	var fsm ElevatorFSM
-	fsm.Floor = state.CurrentFloor
+	ElevInit(&fsm)
 
 	floorCh := make(chan int)
 	btnCh := make(chan elevio.ButtonEvent)
@@ -27,7 +25,6 @@ func HardwareManager(orderCh, rmOrderCh chan types.Order) {
 		select {
 		case floor := <-floorCh:
 			fmt.Printf("Floor %d\n", floor)
-			state.CurrentFloor = floor
 
 			// Check if we had orders at this floor before the FSM clears them
 			hadHallUp := fsm.Orders[floor][elevio.BT_HallUp]
@@ -38,19 +35,19 @@ func HardwareManager(orderCh, rmOrderCh chan types.Order) {
 
 			// Send remove orders for any orders the FSM cleared at this floor
 			if hadHallUp && !fsm.Orders[floor][elevio.BT_HallUp] {
-				rmOrderCh <- types.Order{Floor: floor, Dir: true}
+				rmOrderCh <- models.Order{Floor: floor, Dir: true}
 			}
 			if hadHallDown && !fsm.Orders[floor][elevio.BT_HallDown] {
-				rmOrderCh <- types.Order{Floor: floor, Dir: false}
+				rmOrderCh <- models.Order{Floor: floor, Dir: false}
 			}
 			if hadCab && !fsm.Orders[floor][elevio.BT_Cab] {
-				rmOrderCh <- types.Order{Floor: floor, Cab: true}
+				rmOrderCh <- models.Order{Floor: floor, Cab: true}
 			}
 
 		case btn := <-btnCh:
 			fmt.Printf("Button: floor %d, type %d\n", btn.Floor, btn.Button)
 
-			var no types.Order
+			var no models.Order
 			no.Floor = btn.Floor
 
 			switch btn.Button {

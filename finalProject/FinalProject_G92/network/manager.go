@@ -2,14 +2,14 @@ package network
 
 import (
 	"FinalProject_G92/config"
-	"FinalProject_G92/types"
+	"FinalProject_G92/models"
 	"time"
 )
 
-func NetworkManager(myId int, worldviewCh chan types.Worldview, heartbeatCh chan types.Heartbeat, newOrder, removeOrder chan types.Order, lightsCh chan<- [config.N]types.HallCall) {
+func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh chan models.Heartbeat, newOrder, removeOrder chan models.Order, lightsCh chan<- [config.N]models.HallCall) {
 
-	var wv types.Worldview
-	lobby := make(map[int]types.Node)
+	var wv models.Worldview
+	lobby := make(map[int]models.Node)
 	wv.CabCallLog = make(map[int][config.N]bool)
 
 	booted := false

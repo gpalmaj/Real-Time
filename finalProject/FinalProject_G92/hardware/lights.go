@@ -3,7 +3,7 @@ package hardware
 import (
 	"FinalProject_G92/config"
 	"FinalProject_G92/hardware/elevio"
-	"FinalProject_G92/types"
+	types "FinalProject_G92/models"
 )
 
 func HallLights(lightsCh <-chan [config.N]types.HallCall) {

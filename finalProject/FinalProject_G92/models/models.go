@@ -1,4 +1,4 @@
-package types
+package models
 
 import (
 	"FinalProject_G92/config"
