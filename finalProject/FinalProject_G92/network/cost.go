@@ -2,7 +2,62 @@ package network
 
 import (
 	"FinalProject_G92/config"
+	"FinalProject_G92/models"
 )
+
+func Assign(
+	myId int,
+	consensus [config.N]models.HallCall,
+	lobby map[int]models.Node,
+) []models.Order {
+
+	var myOrders []models.Order
+	for floor := range config.N {
+		for _, call := range []struct {
+			active    bool
+			targetDir int
+			dirBool   bool
+		}{
+			{consensus[floor].Up, 0, true},
+			{consensus[floor].Down, 1, false},
+		} {
+			if !call.active {
+				continue
+			}
+
+			bestId := -1
+			bestCost := int(^uint(0) >> 1) //max int
+
+			for id, node := range lobby {
+				//ignores dead and unoperational nodes
+				if !node.Alive || !node.Worldview.Status.Operational {
+					continue
+				}
+
+				c := Cost(
+					node.Worldview.Status.Floor,
+					node.Worldview.Status.Direction,
+					floor,
+					call.targetDir,
+					node.Worldview.CabCalls,
+				)
+
+				if c < bestCost || (c == bestCost && id < bestId) {
+					bestCost = c
+					bestId = id
+				}
+
+			}
+
+			if bestId == myId {
+				myOrders = append(myOrders, models.Order{Floor: floor, Dir: call.dirBool})
+			}
+		}
+
+	}
+
+	return myOrders
+}
 
 func Cost(
 	floor, direction, targetFloor, targetDir int,
@@ -81,15 +136,19 @@ func chooseDirection(floor, dir int, orders [config.N][3]bool) int {
 		return 1
 	case ordersBelow(floor, orders) && (dir == -1 || dir == 0):
 		return -1
+
+	//handle direction reversal
 	case ordersAbove(floor, orders):
 		return 1
 	case ordersBelow(floor, orders):
 		return -1
 	default:
+
 		return 0
 	}
 }
 
+// not ideal, clears everything. Should only clear direction served.
 func clearAtFloor(orders *[config.N][3]bool, floor int) {
 	for btn := range 3 {
 		orders[floor][btn] = false

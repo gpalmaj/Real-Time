@@ -37,12 +37,15 @@ func main() {
 	lightsCh := make(chan [config.N]models.HallCall)
 	statusCh := make(chan models.StatusMessage)
 
+	//explain why this should be buffered
+	assignCh := make(chan models.Order, 8)
+
 	// launch goroutines
 	go network.HeartbeatListener(heartbeatCh)
 	go network.HeartbeatSender(worldviewCh, ip, id)
 	go debug.OrdersFromKB(orderCh, rmOrderCh)
 	go hardware.HallLights(lightsCh)
-	go hardware.HardwareManager(orderCh, rmOrderCh, statusCh)
+	go hardware.HardwareManager(assignCh, orderCh, rmOrderCh, statusCh)
 
-	network.NetworkManager(id, worldviewCh, heartbeatCh, orderCh, rmOrderCh, lightsCh, statusCh)
+	network.NetworkManager(id, worldviewCh, heartbeatCh, assignCh, orderCh, rmOrderCh, lightsCh, statusCh)
 }

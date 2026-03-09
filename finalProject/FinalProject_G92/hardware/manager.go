@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func HardwareManager(orderCh, rmOrderCh chan models.Order, statusCh chan models.StatusMessage) {
+func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh chan models.StatusMessage) {
 
 	var fsm ElevatorFSM
 	ElevInit(&fsm)
@@ -57,12 +57,14 @@ func HardwareManager(orderCh, rmOrderCh chan models.Order, statusCh chan models.
 				no.Dir = true
 			case elevio.BT_HallDown:
 				no.Dir = false
+
 			case elevio.BT_Cab:
+				//if its a cab call, it has to be assigned right away.
 				no.Cab = true
+				fsm.OnButtonPress(btn.Floor, btn.Button)
 			}
 
 			orderCh <- no
-			fsm.OnButtonPress(btn.Floor, btn.Button)
 
 		case stop := <-stopCh:
 			if stop {
@@ -77,6 +79,14 @@ func HardwareManager(orderCh, rmOrderCh chan models.Order, statusCh chan models.
 				fmt.Println("Obstruction cleared")
 			}
 			statusCh <- models.StatusMessage{Floor: fsm.Floor, Direction: int(fsm.Direction), Operational: !obstr}
+
+		case ao := <-assignCh:
+			btn := elevio.BT_HallUp
+			if !ao.Dir {
+				btn = elevio.BT_HallDown
+			}
+			fsm.OnButtonPress(ao.Floor, btn)
+
 		}
 	}
 }

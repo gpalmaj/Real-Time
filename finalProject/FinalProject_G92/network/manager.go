@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh chan models.Heartbeat, newOrder, removeOrder chan models.Order, lightsCh chan<- [config.N]models.HallCall, statusCh chan models.StatusMessage) {
+func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh chan models.Heartbeat, assignCh, newOrder, removeOrder chan models.Order, lightsCh chan<- [config.N]models.HallCall, statusCh chan models.StatusMessage) {
 
 	var wv models.Worldview
 	lobby := make(map[int]models.Node)
@@ -38,10 +38,16 @@ func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh cha
 
 			MergeWorldview(&wv, hb.Worldview)
 			UpdateCabCallLog(&wv, lobby)
+			consensusCalls := ComputeHallLights(lobby)
 			worldviewCh <- wv
 			select {
-			case lightsCh <- ComputeHallLights(lobby):
+			case lightsCh <- consensusCalls:
 			default:
+			}
+
+			//assigning orders
+			for _, order := range Assign(myId, consensusCalls, lobby) {
+				assignCh <- order
 			}
 
 			debug.PrintLobby(lobby)

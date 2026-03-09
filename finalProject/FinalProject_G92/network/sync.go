@@ -25,6 +25,8 @@ func UpdateCabCallLog(wv *models.Worldview, lobby map[int]models.Node) {
 	for key := range lobby {
 		newLog[key] = lobby[key].Worldview.CabCalls
 	}
+
+	wv.CabCallLog = newLog
 }
 
 func ComputeHallLights(lobby map[int]models.Node) [config.N]models.HallCall {
