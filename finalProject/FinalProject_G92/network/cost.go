@@ -149,16 +149,16 @@ func chooseDirection(floor, dir int, orders [config.N][3]bool) int {
 // not ideal, clears everything. Should only clear direction served.
 func clearAtFloor(orders *[config.N][3]bool, floor int, dir int) {
 	orders[floor][2] = false
-	switch dir {
-	case 1:
-		orders[floor][0] = false
-	case -1:
-		orders[floor][1] = false
-	case 0:
-		orders[floor][0] = false
-		orders[floor][1] = false
+	orders[floor][0] = false
+	orders[floor][1] = false
+	// switch dir {
+	// case 1:
+	// 	orders[floor][0] = false
+	// case -1:
+	// 	orders[floor][1] = false
+	// case 0:
 
-	}
+	// }
 
 }
 

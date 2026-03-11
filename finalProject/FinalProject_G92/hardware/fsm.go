@@ -86,23 +86,23 @@ func (fsm *ElevatorFSM) clearOrdersAtFloor() {
 	//Clears cabs
 	fsm.Orders[fsm.Floor][elevio.BT_Cab] = false
 	elevio.SetButtonLamp(elevio.BT_Cab, fsm.Floor, false)
+	fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
+	elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
+	fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
+	elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
 
-	switch fsm.Direction {
-	case elevio.MD_Up:
-		fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
-		elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
+	// switch fsm.Direction {
+	// case elevio.MD_Up:
+	// 	fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
+	// 	elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
 
-	case elevio.MD_Down:
-		fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
-		elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
+	// case elevio.MD_Down:
+	// 	fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
+	// 	elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
 
-	//Clears both if idle
-	case elevio.MD_Stop:
-		fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
-		elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
-		fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
-		elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
-	}
+	// //Clears both if idle
+	// case elevio.MD_Stop:
+	// }
 
 }
 
