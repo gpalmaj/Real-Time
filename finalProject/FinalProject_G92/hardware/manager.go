@@ -83,6 +83,9 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 		case ao := <-assignCh:
 			if ao.Cab {
 				fsm.OnButtonPress(ao.Floor, elevio.BT_Cab)
+				if !fsm.Orders[ao.Floor][elevio.BT_Cab] {
+					rmOrderCh <- models.Order{Floor: ao.Floor, Cab: true}
+				}
 			} else {
 
 				btn := elevio.BT_HallUp
@@ -90,6 +93,9 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 					btn = elevio.BT_HallDown
 				}
 				fsm.OnButtonPress(ao.Floor, btn)
+				if !fsm.Orders[ao.Floor][btn] {
+					rmOrderCh <- ao
+				}
 			}
 
 		}

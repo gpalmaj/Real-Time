@@ -26,33 +26,30 @@ type ElevatorFSM struct {
 }
 
 func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
-	fsm.Orders[floor][btn] = true
-	elevio.SetButtonLamp(btn, floor, true)
+ fsm.Orders[floor][btn] = true
+        elevio.SetButtonLamp(btn, floor, true)
 
-	switch fsm.State {
-	case Idle:
-		if floor == fsm.Floor {
-			fsm.State = DoorOpen
-			elevio.SetDoorOpenLamp(true)
-			fsm.clearOrdersAtFloor()
-			go func() {
-				time.Sleep(config.DoorOpenDuration)
-				elevio.SetDoorOpenLamp(false)
-				fsm.chooseDirectionAndMove()
-			}()
-
-		} else {
-			fsm.chooseDirectionAndMove()
-
-		}
-	case DoorOpen:
-		if floor == fsm.Floor {
-			// Re-open door (reset timer handled by caller)
-			fsm.clearOrdersAtFloor()
-		}
-	case Moving, Stopped:
-		// Order is stored, will be served when appropriate
-	}
+        switch fsm.State {
+        case Idle:
+                if floor == fsm.Floor {
+                        fsm.State = DoorOpen
+                        elevio.SetDoorOpenLamp(true)
+                        fsm.clearOrdersAtFloor()
+                        go func() {
+                                time.Sleep(config.DoorOpenDurat
+                                elevio.SetDoorOpenLamp(false)
+                                fsm.chooseDirectionAndMove()
+                        }()
+                } else {
+                        fsm.chooseDirectionAndMove()
+                }
+        case DoorOpen:
+                if floor == fsm.Floor {
+                        fsm.clearOrdersAtFloor()
+                }
+        case Moving, Stopped:
+                // Order is stored, will be served when appropr
+        }
 }
 
 func (fsm *ElevatorFSM) OnFloorArrival(floor int) {
