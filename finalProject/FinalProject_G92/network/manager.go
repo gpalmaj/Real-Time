@@ -28,6 +28,11 @@ func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh cha
 				if myCabCalls, ok := hb.Worldview.CabCallLog[myId]; ok {
 					wv.CabCalls = myCabCalls
 					booted = true
+					for f, active := range myCabCalls {
+						if active {
+							assignCh <- models.Order{Floor: f, Cab: true}
+						}
+					}
 				}
 			}
 

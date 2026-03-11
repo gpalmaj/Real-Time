@@ -64,8 +64,6 @@ func Cost(
 	cabCalls [config.N]bool,
 ) int {
 
-	//						SETUP
-
 	//	construct a local map and include cabcalls
 	var localOrders [config.N][3]bool
 	for f := range config.N {
@@ -91,7 +89,7 @@ func Cost(
 		if shouldStop(simFloor, simDir, localOrders) {
 			//adds door cost
 			cost += int(config.DoorOpenDuration)
-			clearAtFloor(&localOrders, simFloor)
+			clearAtFloor(&localOrders, simFloor, simDir)
 			simDir = 0
 		}
 
@@ -149,10 +147,19 @@ func chooseDirection(floor, dir int, orders [config.N][3]bool) int {
 }
 
 // not ideal, clears everything. Should only clear direction served.
-func clearAtFloor(orders *[config.N][3]bool, floor int) {
-	for btn := range 3 {
-		orders[floor][btn] = false
+func clearAtFloor(orders *[config.N][3]bool, floor int, dir int) {
+	orders[floor][2] = false
+	switch dir {
+	case 1:
+		orders[floor][0] = false
+	case -1:
+		orders[floor][1] = false
+	case 0:
+		orders[floor][0] = false
+		orders[floor][1] = false
+
 	}
+
 }
 
 func ordersAbove(floor int, orders [config.N][3]bool) bool {
