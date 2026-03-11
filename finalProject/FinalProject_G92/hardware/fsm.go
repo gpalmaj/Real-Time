@@ -31,7 +31,20 @@ func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
 
 	switch fsm.State {
 	case Idle:
-		fsm.chooseDirectionAndMove()
+		if floor == fsm.Floor {
+			fsm.State = DoorOpen
+			elevio.SetDoorOpenLamp(true)
+			fsm.clearOrdersAtFloor()
+			go func() {
+				time.Sleep(config.DoorOpenDuration)
+				elevio.SetDoorOpenLamp(false)
+				fsm.chooseDirectionAndMove()
+			}()
+
+		} else {
+			fsm.chooseDirectionAndMove()
+
+		}
 	case DoorOpen:
 		if floor == fsm.Floor {
 			// Re-open door (reset timer handled by caller)
