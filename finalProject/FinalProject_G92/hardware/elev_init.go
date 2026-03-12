@@ -8,11 +8,7 @@ import (
 func ElevInit(eState *ElevatorFSM) {
 	elevio.SetMotorDirection(elevio.MD_Stop)
 	eState.Direction = elevio.MD_Stop
-
-	eState.Floor = elevio.GetFloor()
-
 	eState.State = Idle
-
 	elevio.SetDoorOpenLamp(false)
 
 	for i := range config.N {
@@ -20,4 +16,15 @@ func ElevInit(eState *ElevatorFSM) {
 		elevio.SetButtonLamp(elevio.BT_HallDown, i, false)
 		elevio.SetButtonLamp(elevio.BT_Cab, i, false)
 	}
+
+	if elevio.GetFloor() == -1 {
+		elevio.SetMotorDirection(elevio.MD_Down)
+		for elevio.GetFloor() == -1 {
+
+		}
+		elevio.SetMotorDirection(elevio.MD_Stop)
+	}
+
+	eState.Floor = elevio.GetFloor()
+
 }
