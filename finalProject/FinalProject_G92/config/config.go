@@ -8,9 +8,9 @@ const (
 	// Port is the UDP broadcast port
 	Port = 3000
 	// DisconnectTimeout is how long before a node is considered disconnected
-	DisconnectTimeout = 3 * time.Second
+	DisconnectTimeout = 500 * time.Millisecond
 	// HeartbeatInterval is how often heartbeats are sent
-	HeartbeatInterval = 1 * time.Second
+	HeartbeatInterval = 100 * time.Millisecond
 	//DoorOpenDuration is how much time the door stays open
 	DoorOpenDuration = 3 * time.Second
 	//BetweenFloorsDuration is how much time the elevator takes to go up or down a floor

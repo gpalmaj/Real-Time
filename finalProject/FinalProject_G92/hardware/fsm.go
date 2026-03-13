@@ -36,12 +36,7 @@ func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
 			fsm.State = DoorOpen
 			elevio.SetDoorOpenLamp(true)
 			fsm.clearOrdersAtFloor()
-			go func() {
-				time.Sleep(config.DoorOpenDuration)
-				elevio.SetDoorOpenLamp(false)
-				fsm.chooseDirectionAndMove()
-			}()
-
+			go CloseDoors(fsm)
 		} else {
 			fsm.chooseDirectionAndMove()
 
@@ -56,6 +51,15 @@ func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
 	}
 }
 
+func CloseDoors(fsm *ElevatorFSM) {
+	time.Sleep(config.DoorOpenDuration)
+	for fsm.Obstructed {
+		time.Sleep(100 * time.Millisecond)
+	}
+	elevio.SetDoorOpenLamp(false)
+	fsm.chooseDirectionAndMove()
+}
+
 func (fsm *ElevatorFSM) OnFloorArrival(floor int) {
 	fsm.Floor = floor
 	elevio.SetFloorIndicator(floor)
@@ -66,14 +70,7 @@ func (fsm *ElevatorFSM) OnFloorArrival(floor int) {
 		elevio.SetDoorOpenLamp(true)
 		fsm.clearOrdersAtFloor()
 
-		go func() {
-			time.Sleep(config.DoorOpenDuration)
-			for fsm.Obstructed {
-				time.Sleep(100 * time.Millisecond)
-			}
-			elevio.SetDoorOpenLamp(false)
-			fsm.chooseDirectionAndMove()
-		}()
+		go CloseDoors(fsm)
 	}
 }
 
@@ -86,7 +83,6 @@ func (fsm *ElevatorFSM) OnStopButton() {
 	fsm.State = Stopped
 	fmt.Println("Elevator stopped")
 }
-
 
 func (fsm *ElevatorFSM) shouldStop() bool {
 	switch fsm.Direction {
