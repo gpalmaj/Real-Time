@@ -1,9 +1,11 @@
 package hardware
 
 import (
+	"FinalProject_G92/config"
 	"FinalProject_G92/hardware/elevio"
 	"FinalProject_G92/models"
 	"fmt"
+	"time"
 )
 
 func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh chan models.StatusMessage) {
@@ -21,11 +23,14 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 	go elevio.PollStopButton(stopCh)
 	go elevio.PollObstructionSwitch(obstrCh)
 
+	motorTimer := time.NewTimer(config.BetweenFloorsDuration * 2)
+
 	for {
 		select {
 		case floor := <-floorCh:
 			fmt.Printf("Floor %d\n", floor)
 
+			motorTimer.Reset(config.BetweenFloorsDuration * 2)
 			// Check if we had orders at this floor before the FSM clears them
 			hadHallUp := fsm.Orders[floor][elevio.BT_HallUp]
 			hadHallDown := fsm.Orders[floor][elevio.BT_HallDown]
@@ -65,7 +70,6 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 				no.Cab = true
 				fsm.OnButtonPress(btn.Floor, btn.Button)
 				if !fsm.Orders[no.Floor][elevio.BT_Cab] {
-					fmt.Println("Istantly served ")
 
 				} else {
 					orderCh <- no
@@ -80,11 +84,7 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 
 		case obstr := <-obstrCh:
 			fsm.OnObstruction(obstr)
-			if obstr {
-				fmt.Println("Obstruction!")
-			} else {
-				fmt.Println("Obstruction cleared")
-			}
+
 			statusCh <- models.StatusMessage{Floor: fsm.Floor, Direction: int(fsm.Direction), Operational: !obstr}
 
 		case ao := <-assignCh:
@@ -104,6 +104,12 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 					rmOrderCh <- ao
 				}
 			}
+
+		case <-motorTimer.C:
+			if fsm.State == Moving {
+				statusCh <- models.StatusMessage{Floor: fsm.Floor, Direction: int(fsm.Direction), Operational: false}
+			}
+			motorTimer.Reset(config.BetweenFloorsDuration * 2)
 
 		}
 	}

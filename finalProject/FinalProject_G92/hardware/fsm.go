@@ -52,9 +52,17 @@ func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
 }
 
 func CloseDoors(fsm *ElevatorFSM) {
-	time.Sleep(config.DoorOpenDuration)
-	for fsm.Obstructed {
-		time.Sleep(100 * time.Millisecond)
+	for {
+		time.Sleep(config.DoorOpenDuration)
+		for fsm.Obstructed {
+			time.Sleep(100 * time.Millisecond)
+		}
+		if fsm.Orders[fsm.Floor][elevio.BT_HallUp] ||
+			fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
+			fsm.clearOrdersAtFloor()
+			continue
+		}
+		break
 	}
 	elevio.SetDoorOpenLamp(false)
 	fsm.chooseDirectionAndMove()
@@ -114,11 +122,14 @@ func (fsm *ElevatorFSM) clearOrdersAtFloor() {
 		//Clears hall down
 		fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
 		elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
-
 	default:
-		fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
-		elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
-
+		if fsm.Direction == elevio.MD_Down {
+			fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
+			elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
+		} else {
+			fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
+			elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
+		}
 	}
 
 }
