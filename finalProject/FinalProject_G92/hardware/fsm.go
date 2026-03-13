@@ -128,28 +128,25 @@ func (fsm *ElevatorFSM) clearOrdersAtFloor() bool {
 		}
 		return false
 	default:
-		if fsm.Direction != elevio.MD_Down {
-			if fsm.Orders[fsm.Floor][elevio.BT_HallUp] {
-				fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
-				elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
-				return true
-			}
-			if fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
-				fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
-				elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
-				return true
-			}
-		} else {
-			if fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
-				fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
-				elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
-				return true
-			}
-			if fsm.Orders[fsm.Floor][elevio.BT_HallUp] {
-				fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
-				elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
-				return true
-			}
+		if fsm.Direction != elevio.MD_Down && fsm.Orders[fsm.Floor][elevio.BT_HallUp] {
+			fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
+			elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
+			return true
+		}
+		if fsm.Direction == elevio.MD_Down && fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
+			fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
+			elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
+			return true
+		}
+		if fsm.Orders[fsm.Floor][elevio.BT_HallUp] {
+			fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
+			elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
+			return true
+		}
+		if fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
+			fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
+			elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
+			return true
 		}
 		return false
 	}
