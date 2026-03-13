@@ -108,30 +108,38 @@ func (fsm *ElevatorFSM) shouldStop() bool {
 	return true
 }
 
+
 func (fsm *ElevatorFSM) clearOrdersAtFloor() {
-	//Clears cabs
-	fsm.Orders[fsm.Floor][elevio.BT_Cab] = false
-	elevio.SetButtonLamp(elevio.BT_Cab, fsm.Floor, false)
+      fsm.Orders[fsm.Floor][elevio.BT_Cab] = false
+      elevio.SetButtonLamp(elevio.BT_Cab, fsm.Floor, false)
 
-	switch {
-	case fsm.ordersAbove():
-		//Clears hall up
-		fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
-		elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
-	case fsm.ordersBelow():
-		//Clears hall down
-		fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
-		elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
-	default:
-		if fsm.Direction == elevio.MD_Down {
-			fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
-			elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
-		} else {
-			fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
-			elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
-		}
-	}
+      preferUp := true
+      switch {
+      case fsm.ordersAbove():
+              preferUp = true
+      case fsm.ordersBelow():
+              preferUp = false
+      default:
+              preferUp = fsm.Direction != elevio.MD_Down
+      }
 
+      if preferUp {
+              if fsm.Orders[fsm.Floor][elevio.BT_HallUp] {
+                      fsm.Orders[fsm.Floor][elevio.BT_HallUp] =
+                      elevio.SetButtonLamp(elevio.BT_HallUp, fs
+              } else {
+                      fsm.Orders[fsm.Floor][elevio.BT_HallDown]
+                      elevio.SetButtonLamp(elevio.BT_HallDown,
+              }
+      } else {
+              if fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
+                      fsm.Orders[fsm.Floor][elevio.BT_HallDown]
+                      elevio.SetButtonLamp(elevio.BT_HallDown,
+              } else {
+                      fsm.Orders[fsm.Floor][elevio.BT_HallUp] =
+                      elevio.SetButtonLamp(elevio.BT_HallUp, fs
+              }
+      }
 }
 
 func (fsm *ElevatorFSM) chooseDirectionAndMove() {
