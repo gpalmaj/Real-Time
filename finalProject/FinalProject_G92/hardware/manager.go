@@ -31,14 +31,13 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 			fmt.Printf("Floor %d\n", floor)
 
 			motorTimer.Reset(config.BetweenFloorsDuration * 2)
-			// Check if we had orders at this floor before the FSM clears them
 			hadHallUp := fsm.Orders[floor][elevio.BT_HallUp]
 			hadHallDown := fsm.Orders[floor][elevio.BT_HallDown]
 			hadCab := fsm.Orders[floor][elevio.BT_Cab]
+			prevState := fsm.State
 
 			fsm.OnFloorArrival(floor)
 
-			// Send remove orders for any orders the FSM cleared at this floor
 			if hadHallUp && !fsm.Orders[floor][elevio.BT_HallUp] {
 				rmOrderCh <- models.Order{Floor: floor, Dir: true}
 			}
@@ -47,6 +46,9 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 			}
 			if hadCab && !fsm.Orders[floor][elevio.BT_Cab] {
 				rmOrderCh <- models.Order{Floor: floor, Cab: true}
+			}
+			if prevState != DoorOpen && fsm.State == DoorOpen {
+				go closeDoors(&fsm, rmOrderCh)
 			}
 
 			statusCh <- models.StatusMessage{Floor: floor, Direction: int(fsm.Direction), Operational: true}
@@ -66,13 +68,16 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 				orderCh <- no
 
 			case elevio.BT_Cab:
-				//if its a cab call, it has to be assigned right away.
 				no.Cab = true
+				prevState := fsm.State
 				fsm.OnButtonPress(btn.Floor, btn.Button)
 				if !fsm.Orders[no.Floor][elevio.BT_Cab] {
 
 				} else {
 					orderCh <- no
+				}
+				if prevState == Idle && fsm.State == DoorOpen {
+					go closeDoors(&fsm, rmOrderCh)
 				}
 			}
 
@@ -88,21 +93,24 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 			statusCh <- models.StatusMessage{Floor: fsm.Floor, Direction: int(fsm.Direction), Operational: !obstr}
 
 		case ao := <-assignCh:
+			prevState := fsm.State
 			if ao.Cab {
 				fsm.OnButtonPress(ao.Floor, elevio.BT_Cab)
 				if !fsm.Orders[ao.Floor][elevio.BT_Cab] {
 					rmOrderCh <- models.Order{Floor: ao.Floor, Cab: true}
 				}
 			} else {
-
 				btn := elevio.BT_HallUp
 				if !ao.Dir {
 					btn = elevio.BT_HallDown
 				}
 				fsm.OnButtonPress(ao.Floor, btn)
-				if !fsm.Orders[ao.Floor][btn] || (fsm.State == DoorOpen && ao.Floor == fsm.Floor) {
+				if !fsm.Orders[ao.Floor][btn] {
 					rmOrderCh <- ao
 				}
+			}
+			if prevState == Idle && fsm.State == DoorOpen {
+				go closeDoors(&fsm, rmOrderCh)
 			}
 
 		case <-motorTimer.C:
@@ -113,4 +121,27 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 
 		}
 	}
+}
+
+func closeDoors(fsm *ElevatorFSM, rmOrderCh chan models.Order) {
+	for {
+		time.Sleep(config.DoorOpenDuration)
+		for fsm.Obstructed {
+			time.Sleep(100 * time.Millisecond)
+		}
+		hadUp := fsm.Orders[fsm.Floor][elevio.BT_HallUp]
+		hadDown := fsm.Orders[fsm.Floor][elevio.BT_HallDown]
+		if (hadUp || hadDown) && fsm.clearOrdersAtFloor() {
+			if hadUp && !fsm.Orders[fsm.Floor][elevio.BT_HallUp] {
+				rmOrderCh <- models.Order{Floor: fsm.Floor, Dir: true}
+			}
+			if hadDown && !fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
+				rmOrderCh <- models.Order{Floor: fsm.Floor, Dir: false}
+			}
+			continue
+		}
+		break
+	}
+	elevio.SetDoorOpenLamp(false)
+	fsm.chooseDirectionAndMove()
 }

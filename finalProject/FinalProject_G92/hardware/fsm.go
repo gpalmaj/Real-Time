@@ -4,7 +4,6 @@ import (
 	"FinalProject_G92/config"
 	"FinalProject_G92/hardware/elevio"
 	"fmt"
-	"time"
 )
 
 type FSMState int
@@ -36,7 +35,6 @@ func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
 			fsm.State = DoorOpen
 			elevio.SetDoorOpenLamp(true)
 			fsm.clearOrdersAtFloor()
-			go CloseDoors(fsm)
 		} else {
 			fsm.chooseDirectionAndMove()
 
@@ -46,22 +44,6 @@ func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
 	}
 }
 
-func CloseDoors(fsm *ElevatorFSM) {
-	for {
-		time.Sleep(config.DoorOpenDuration)
-		for fsm.Obstructed {
-			time.Sleep(100 * time.Millisecond)
-		}
-		if (fsm.Orders[fsm.Floor][elevio.BT_HallUp] ||
-			fsm.Orders[fsm.Floor][elevio.BT_HallDown]) &&
-			fsm.clearOrdersAtFloor() {
-			continue
-		}
-		break
-	}
-	elevio.SetDoorOpenLamp(false)
-	fsm.chooseDirectionAndMove()
-}
 
 func (fsm *ElevatorFSM) OnFloorArrival(floor int) {
 	fsm.Floor = floor
@@ -72,8 +54,6 @@ func (fsm *ElevatorFSM) OnFloorArrival(floor int) {
 		fsm.State = DoorOpen
 		elevio.SetDoorOpenLamp(true)
 		fsm.clearOrdersAtFloor()
-
-		go CloseDoors(fsm)
 	}
 }
 
