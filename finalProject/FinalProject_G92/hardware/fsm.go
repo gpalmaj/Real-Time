@@ -41,12 +41,7 @@ func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
 			fsm.chooseDirectionAndMove()
 
 		}
-	case DoorOpen:
-		if floor == fsm.Floor {
-			// Re-open door (reset timer handled by caller)
-			fsm.clearOrdersAtFloor()
-		}
-	case Moving, Stopped:
+	case DoorOpen, Moving, Stopped:
 		// Order is stored, will be served when appropriate
 	}
 }
