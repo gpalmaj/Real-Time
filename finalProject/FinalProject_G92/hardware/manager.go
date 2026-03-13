@@ -100,7 +100,7 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 					btn = elevio.BT_HallDown
 				}
 				fsm.OnButtonPress(ao.Floor, btn)
-				if !fsm.Orders[ao.Floor][btn] {
+				if !fsm.Orders[ao.Floor][btn] || (fsm.State == DoorOpen && ao.Floor == fsm.Floor) {
 					rmOrderCh <- ao
 				}
 			}
