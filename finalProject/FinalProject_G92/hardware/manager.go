@@ -55,16 +55,22 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 			switch btn.Button {
 			case elevio.BT_HallUp:
 				no.Dir = true
+				orderCh <- no
 			case elevio.BT_HallDown:
 				no.Dir = false
+				orderCh <- no
 
 			case elevio.BT_Cab:
 				//if its a cab call, it has to be assigned right away.
 				no.Cab = true
 				fsm.OnButtonPress(btn.Floor, btn.Button)
-			}
+				if !fsm.Orders[no.Floor][elevio.BT_Cab] {
+					fmt.Println("Istantly served ")
 
-			orderCh <- no
+				} else {
+					orderCh <- no
+				}
+			}
 
 		case stop := <-stopCh:
 			if stop {
@@ -73,6 +79,7 @@ func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh ch
 			statusCh <- models.StatusMessage{Floor: fsm.Floor, Direction: int(fsm.Direction), Operational: !stop}
 
 		case obstr := <-obstrCh:
+			fsm.OnObstruction(obstr)
 			if obstr {
 				fmt.Println("Obstruction!")
 			} else {

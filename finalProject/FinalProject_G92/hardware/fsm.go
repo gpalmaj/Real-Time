@@ -19,10 +19,11 @@ const (
 const OrderTypes = 3
 
 type ElevatorFSM struct {
-	State     FSMState
-	Floor     int
-	Direction elevio.MotorDirection
-	Orders    [config.N][OrderTypes]bool // floor x button type
+	State      FSMState
+	Floor      int
+	Direction  elevio.MotorDirection
+	Orders     [config.N][OrderTypes]bool // floor x button type
+	Obstructed bool
 }
 
 func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
@@ -67,10 +68,17 @@ func (fsm *ElevatorFSM) OnFloorArrival(floor int) {
 
 		go func() {
 			time.Sleep(config.DoorOpenDuration)
+			for fsm.Obstructed {
+				time.Sleep(100 * time.Millisecond)
+			}
 			elevio.SetDoorOpenLamp(false)
 			fsm.chooseDirectionAndMove()
 		}()
 	}
+}
+
+func (fsm *ElevatorFSM) OnObstruction(obstructed bool) {
+	fsm.Obstructed = obstructed
 }
 
 func (fsm *ElevatorFSM) OnStopButton() {
@@ -78,6 +86,7 @@ func (fsm *ElevatorFSM) OnStopButton() {
 	fsm.State = Stopped
 	fmt.Println("Elevator stopped")
 }
+
 
 func (fsm *ElevatorFSM) shouldStop() bool {
 	switch fsm.Direction {

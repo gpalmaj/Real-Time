@@ -36,8 +36,6 @@ func main() {
 	rmOrderCh := make(chan models.Order)
 	lightsCh := make(chan [config.N]models.HallCall)
 	statusCh := make(chan models.StatusMessage)
-
-	//explain why this should be buffered
 	assignCh := make(chan models.Order, 8)
 
 	// launch goroutines
