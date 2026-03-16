@@ -1,11 +1,11 @@
-package network
+package coordinator
 
 import (
 	"FinalProject_G92/config"
 	"FinalProject_G92/models"
 )
 
-func Assign(
+func AssignOrder(
 	myId int,
 	consensus [config.N]models.HallCall,
 	lobby map[int]models.Node,

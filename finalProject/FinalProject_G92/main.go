@@ -7,6 +7,7 @@ import (
 	"FinalProject_G92/hardware/elevio"
 	"FinalProject_G92/models"
 	"FinalProject_G92/network"
+	"FinalProject_G92/system_coordinator"
 	"fmt"
 	"net"
 	"os"
@@ -45,5 +46,5 @@ func main() {
 	go hardware.HallLights(lightsCh)
 	go hardware.ElevatorController(assignCh, orderCh, rmOrderCh, statusCh)
 
-	network.NetworkManager(id, worldviewCh, heartbeatCh, assignCh, orderCh, rmOrderCh, lightsCh, statusCh)
+	coordinator.SystemCoordinator(id, worldviewCh, heartbeatCh, assignCh, orderCh, rmOrderCh, lightsCh, statusCh)
 }
