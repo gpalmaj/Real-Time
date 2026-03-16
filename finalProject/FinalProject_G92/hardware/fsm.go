@@ -44,7 +44,6 @@ func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
 	}
 }
 
-
 func (fsm *ElevatorFSM) OnFloorArrival(floor int) {
 	fsm.Floor = floor
 	elevio.SetFloorIndicator(floor)
@@ -87,44 +86,31 @@ func (fsm *ElevatorFSM) clearOrdersAtFloor() bool {
 	fsm.Orders[fsm.Floor][elevio.BT_Cab] = false
 	elevio.SetButtonLamp(elevio.BT_Cab, fsm.Floor, false)
 
-	switch {
-	case fsm.ordersAbove():
-		if fsm.Orders[fsm.Floor][elevio.BT_HallUp] {
-			fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
-			elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
-			return true
-		}
-		return false
-	case fsm.ordersBelow():
-		if fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
-			fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
-			elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
-			return true
-		}
-		return false
-	default:
-		if fsm.Direction != elevio.MD_Down && fsm.Orders[fsm.Floor][elevio.BT_HallUp] {
-			fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
-			elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
-			return true
-		}
-		if fsm.Direction == elevio.MD_Down && fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
-			fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
-			elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
-			return true
-		}
-		if fsm.Orders[fsm.Floor][elevio.BT_HallUp] {
-			fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
-			elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
-			return true
-		}
-		if fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
-			fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
-			elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
-			return true
-		}
-		return false
+	// Clear the order matching travel direction
+	if fsm.Direction == elevio.MD_Up && fsm.Orders[fsm.Floor][elevio.BT_HallUp] {
+		fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
+		elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
+		return true
 	}
+	if fsm.Direction == elevio.MD_Down && fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
+		fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
+		elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
+		return true
+	}
+
+	// about to reverse
+	if !fsm.ordersAbove() && fsm.Orders[fsm.Floor][elevio.BT_HallDown] {
+		fsm.Orders[fsm.Floor][elevio.BT_HallDown] = false
+		elevio.SetButtonLamp(elevio.BT_HallDown, fsm.Floor, false)
+		return true
+	}
+	if !fsm.ordersBelow() && fsm.Orders[fsm.Floor][elevio.BT_HallUp] {
+		fsm.Orders[fsm.Floor][elevio.BT_HallUp] = false
+		elevio.SetButtonLamp(elevio.BT_HallUp, fsm.Floor, false)
+		return true
+	}
+
+	return false
 }
 
 func (fsm *ElevatorFSM) chooseDirectionAndMove() {

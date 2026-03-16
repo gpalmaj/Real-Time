@@ -24,8 +24,8 @@ func main() {
 
 	elevio.Init(ipStr+":15657", config.N)
 
-	var id int
-	if len(os.Args) > 1 {
+	id := int(ip.To4()[3]) // derive from ip as standartd
+	if len(os.Args) > 1 {  // from command line to test on single machine
 		id, _ = strconv.Atoi(os.Args[1])
 	}
 
