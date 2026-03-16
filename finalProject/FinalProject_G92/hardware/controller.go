@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh chan models.StatusMessage) {
+func ElevatorController(assignCh, orderCh, rmOrderCh chan models.Order, statusCh chan models.StatusMessage) {
 
 	var fsm ElevatorFSM
 	ElevInit(&fsm)

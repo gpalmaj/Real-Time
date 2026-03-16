@@ -43,7 +43,7 @@ func main() {
 	go network.HeartbeatSender(worldviewCh, ip, id)
 	go debug.OrdersFromKB(orderCh, rmOrderCh)
 	go hardware.HallLights(lightsCh)
-	go hardware.HardwareManager(assignCh, orderCh, rmOrderCh, statusCh)
+	go hardware.ElevatorController(assignCh, orderCh, rmOrderCh, statusCh)
 
 	network.NetworkManager(id, worldviewCh, heartbeatCh, assignCh, orderCh, rmOrderCh, lightsCh, statusCh)
 }
