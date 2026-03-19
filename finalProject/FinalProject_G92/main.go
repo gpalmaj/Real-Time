@@ -22,12 +22,16 @@ func main() {
 	ip := net.ParseIP(ipStr)
 	fmt.Println(ip)
 
-	elevio.Init(ipStr+":15657", config.N)
-
 	id := int(ip.To4()[3]) // derive from ip as standartd
-	if len(os.Args) > 1 {  // from command line to test on single machine
+	port := config.ElevatorServerPort
+	if len(os.Args) > 1 { // from command line to test on single machine
 		id, _ = strconv.Atoi(os.Args[1])
+		port += id
 	}
+
+	portStr := strconv.Itoa(port)
+
+	elevio.Init(ipStr+":"+portStr, config.N)
 
 	// channels
 	heartbeatCh := make(chan models.Heartbeat)
