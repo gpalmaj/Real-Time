@@ -2,9 +2,10 @@ package main
 
 import (
 	"FinalProject_G92/config"
+	"FinalProject_G92/controller"
+	"FinalProject_G92/controller/elevio"
+	"FinalProject_G92/coordinator"
 	"FinalProject_G92/debug"
-	"FinalProject_G92/hardware"
-	"FinalProject_G92/hardware/elevio"
 	"FinalProject_G92/models"
 	"FinalProject_G92/network"
 	"fmt"
@@ -46,8 +47,8 @@ func main() {
 	go network.HeartbeatListener(heartbeatCh)
 	go network.HeartbeatSender(worldviewCh, ip, id)
 	go debug.OrdersFromKB(orderCh, rmOrderCh)
-	go hardware.HallLights(lightsCh)
-	go hardware.HardwareManager(assignCh, orderCh, rmOrderCh, statusCh)
+	go controller.HallLights(lightsCh)
+	go controller.ElevatorController(assignCh, orderCh, rmOrderCh, statusCh)
 
-	network.NetworkManager(id, worldviewCh, heartbeatCh, assignCh, orderCh, rmOrderCh, lightsCh, statusCh)
+	coordinator.SystemCoordinator(id, worldviewCh, heartbeatCh, assignCh, orderCh, rmOrderCh, lightsCh, statusCh)
 }

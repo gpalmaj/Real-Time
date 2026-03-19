@@ -1,14 +1,14 @@
-package hardware
+package controller
 
 import (
 	"FinalProject_G92/config"
-	"FinalProject_G92/hardware/elevio"
+	"FinalProject_G92/controller/elevio"
 	"FinalProject_G92/models"
 	"fmt"
 	"time"
 )
 
-func HardwareManager(assignCh, orderCh, rmOrderCh chan models.Order, statusCh chan models.StatusMessage) {
+func ElevatorController(assignCh, orderCh, rmOrderCh chan models.Order, statusCh chan models.StatusMessage) {
 
 	var fsm ElevatorFSM
 	ElevInit(&fsm)

@@ -1,8 +1,8 @@
-package hardware
+package controller
 
 import (
 	"FinalProject_G92/config"
-	"FinalProject_G92/hardware/elevio"
+	"FinalProject_G92/controller/elevio"
 	"fmt"
 )
 

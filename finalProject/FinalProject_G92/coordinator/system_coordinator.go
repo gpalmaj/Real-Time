@@ -1,4 +1,4 @@
-package network
+package coordinator
 
 import (
 	"FinalProject_G92/config"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func NetworkManager(myId int, worldviewCh chan models.Worldview, heartbeatCh chan models.Heartbeat, assignCh, newOrder, removeOrder chan models.Order, lightsCh chan<- [config.N]models.HallCall, statusCh chan models.StatusMessage) {
+func SystemCoordinator(myId int, worldviewCh chan models.Worldview, heartbeatCh chan models.Heartbeat, assignCh, newOrder, removeOrder chan models.Order, lightsCh chan<- [config.N]models.HallCall, statusCh chan models.StatusMessage) {
 
 	var wv models.Worldview
 	lobby := make(map[int]models.Node)

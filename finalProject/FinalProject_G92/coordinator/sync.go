@@ -1,4 +1,4 @@
-package network
+package coordinator
 
 import (
 	"FinalProject_G92/config"
