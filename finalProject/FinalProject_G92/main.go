@@ -5,7 +5,6 @@ import (
 	"FinalProject_G92/controller"
 	"FinalProject_G92/controller/elevio"
 	"FinalProject_G92/coordinator"
-	"FinalProject_G92/debug"
 	"FinalProject_G92/models"
 	"FinalProject_G92/network"
 	"fmt"
@@ -46,7 +45,6 @@ func main() {
 	// launch goroutines
 	go network.HeartbeatListener(heartbeatCh)
 	go network.HeartbeatSender(worldviewCh, ip, id)
-	go debug.OrdersFromKB(orderCh, rmOrderCh)
 	go controller.HallLights(lightsCh)
 	go controller.ElevatorController(assignCh, orderCh, rmOrderCh, statusCh)
 

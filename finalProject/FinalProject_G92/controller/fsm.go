@@ -17,14 +17,16 @@ const (
 
 const OrderTypes = 3
 
+// ElevatorFSM holds the elevator's state and pending orders.
 type ElevatorFSM struct {
 	State      FSMState
 	Floor      int
 	Direction  elevio.MotorDirection
-	Orders     [config.N][OrderTypes]bool // floor x button type
+	Orders     [config.N][OrderTypes]bool // [floor][buttonType]
 	Obstructed bool
 }
 
+// OnButtonPress stores an order and, if idle, starts moving or opens doors.
 func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
 	fsm.Orders[floor][btn] = true
 	elevio.SetButtonLamp(btn, floor, true)
@@ -44,6 +46,7 @@ func (fsm *ElevatorFSM) OnButtonPress(floor int, btn elevio.ButtonType) {
 	}
 }
 
+// OnFloorArrival updates the floor and stops if the elevator should serve this floor.
 func (fsm *ElevatorFSM) OnFloorArrival(floor int) {
 	fsm.Floor = floor
 	elevio.SetFloorIndicator(floor)
@@ -66,6 +69,8 @@ func (fsm *ElevatorFSM) OnStopButton() {
 	fmt.Println("Elevator stopped")
 }
 
+// shouldStop returns true if the elevator should stop at its current floor:
+// matching directional order, cab call, or no more orders ahead.
 func (fsm *ElevatorFSM) shouldStop() bool {
 	switch fsm.Direction {
 	case elevio.MD_Up:
@@ -82,6 +87,9 @@ func (fsm *ElevatorFSM) shouldStop() bool {
 	return true
 }
 
+// clearOrdersAtFloor clears the cab call and the hall call matching travel direction.
+// If reversing (no orders ahead), clears the opposite direction instead.
+// Returns true if a hall call was cleared.
 func (fsm *ElevatorFSM) clearOrdersAtFloor() bool {
 	fsm.Orders[fsm.Floor][elevio.BT_Cab] = false
 	elevio.SetButtonLamp(elevio.BT_Cab, fsm.Floor, false)
@@ -113,6 +121,8 @@ func (fsm *ElevatorFSM) clearOrdersAtFloor() bool {
 	return false
 }
 
+// chooseDirectionAndMove picks the next direction based on pending orders
+// and starts the motor. Goes idle if no orders remain.
 func (fsm *ElevatorFSM) chooseDirectionAndMove() {
 	switch {
 	case fsm.ordersAbove() && (fsm.Direction == elevio.MD_Up || fsm.Direction == elevio.MD_Stop):

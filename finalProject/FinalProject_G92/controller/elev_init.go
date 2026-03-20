@@ -3,8 +3,11 @@ package controller
 import (
 	"FinalProject_G92/config"
 	"FinalProject_G92/controller/elevio"
+	"time"
 )
 
+// ElevInit puts the elevator into a known-good state: stops the motor,
+// turns off all lamps, and drives to the nearest floor if between floors.
 func ElevInit(eState *ElevatorFSM) {
 	elevio.SetMotorDirection(elevio.MD_Stop)
 	eState.Direction = elevio.MD_Stop
@@ -20,7 +23,7 @@ func ElevInit(eState *ElevatorFSM) {
 	if elevio.GetFloor() == -1 {
 		elevio.SetMotorDirection(elevio.MD_Down)
 		for elevio.GetFloor() == -1 {
-
+			time.Sleep(10 * time.Millisecond)
 		}
 		elevio.SetMotorDirection(elevio.MD_Stop)
 	}

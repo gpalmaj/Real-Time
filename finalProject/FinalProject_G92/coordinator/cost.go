@@ -3,8 +3,12 @@ package coordinator
 import (
 	"FinalProject_G92/config"
 	"FinalProject_G92/models"
+	"math"
 )
 
+// Assign evaluates each consensus hall call and returns the orders that should be
+// handled by this node. Uses the cost function with lowest-ID tiebreaker so all
+// nodes arrive at the same assignment independently.
 func Assign(
 	myId int,
 	consensus [config.N]models.HallCall,
@@ -26,7 +30,7 @@ func Assign(
 			}
 
 			bestId := -1
-			bestCost := int(^uint(0) >> 1) //max int
+			bestCost := math.MaxInt
 
 			for id, node := range lobby {
 				//ignores dead and unoperational nodes
@@ -59,6 +63,9 @@ func Assign(
 	return myOrders
 }
 
+// Cost simulates the elevator's path from its current position through its pending
+// orders plus the target call, and returns the estimated time in seconds.
+// Direction uses 1=up, -1=down, 0=stopped. targetDir uses 0=up, 1=down (array indices).
 func Cost(
 	floor, direction, targetFloor, targetDir int,
 	cabCalls [config.N]bool,
@@ -81,7 +88,7 @@ func Cost(
 	simDir := direction
 
 	for {
-		// if the elevator is at the floor and sould stop, cost is zero
+		// if the elevator is at the floor and should stop, cost is zero
 		if simFloor == targetFloor && shouldStop(simFloor, simDir, localOrders) {
 			return cost
 		}
@@ -109,7 +116,6 @@ func Cost(
 
 		//adds time between floors cost
 		cost += int(config.BetweenFloorsDuration.Seconds())
-		//INFO time is in nanoseconds, so very high number there. Investigate if issues.
 	}
 
 }
@@ -146,20 +152,28 @@ func chooseDirection(floor, dir int, orders [config.N][3]bool) int {
 	}
 }
 
-// not ideal, clears everything. Should only clear direction served.
 func clearAtFloor(orders *[config.N][3]bool, floor int, dir int) {
-	orders[floor][2] = false
-	orders[floor][0] = false
-	orders[floor][1] = false
-	// switch dir {
-	// case 1:
-	// 	orders[floor][0] = false
-	// case -1:
-	// 	orders[floor][1] = false
-	// case 0:
-
-	// }
-
+	orders[floor][2] = false // always clear cab
+	switch dir {
+	//clears up call if going up
+	case 1:
+		if orders[floor][0] {
+			orders[floor][0] = false
+		} else if !ordersAbove(floor, *orders) {
+			orders[floor][1] = false
+		}
+	//clears down call if going down
+	case -1:
+		if orders[floor][1] {
+			orders[floor][1] = false
+		} else if !ordersBelow(floor, *orders) {
+			orders[floor][0] = false
+		}
+	//clears both if stopped
+	case 0:
+		orders[floor][0] = false
+		orders[floor][1] = false
+	}
 }
 
 func ordersAbove(floor int, orders [config.N][3]bool) bool {

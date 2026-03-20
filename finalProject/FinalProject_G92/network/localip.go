@@ -7,6 +7,8 @@ import (
 
 var localIPCache string
 
+// LocalIP discovers this machine's LAN IP by connecting to an external address
+// and reading the local side of the connection. Result is cached.
 func LocalIP() (string, error) {
 	if localIPCache == "" {
 		conn, err := net.DialTCP("tcp4", nil, &net.TCPAddr{IP: []byte{8, 8, 8, 8}, Port: 53})

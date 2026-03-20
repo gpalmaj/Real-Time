@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+// HeartbeatSender broadcasts this node's worldview via UDP every HeartbeatInterval.
+// Picks up the latest worldview from worldviewCh between ticks.
 func HeartbeatSender(worldviewCh chan models.Worldview, ip net.IP, id int) {
 	conn := DialBroadcastUDP(config.Port)
 	defer conn.Close()
@@ -43,6 +45,7 @@ func HeartbeatSender(worldviewCh chan models.Worldview, ip net.IP, id int) {
 	}
 }
 
+// HeartbeatListener listens for incoming UDP heartbeats and forwards them to the coordinator.
 func HeartbeatListener(heartbeatCh chan models.Heartbeat) {
 	conn := DialBroadcastUDP(config.Port)
 	defer conn.Close()

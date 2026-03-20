@@ -7,12 +7,16 @@ import (
 	"time"
 )
 
+// SystemCoordinator is the central coordination loop. It merges peer worldviews,
+// recovers cab calls on boot, computes hall light consensus, and assigns orders
+// to the local elevator via the cost function. Runs on the main goroutine.
 func SystemCoordinator(myId int, worldviewCh chan models.Worldview, heartbeatCh chan models.Heartbeat, assignCh, newOrder, removeOrder chan models.Order, lightsCh chan<- [config.N]models.HallCall, statusCh chan models.StatusMessage) {
 
 	var wv models.Worldview
 	lobby := make(map[int]models.Node)
 	wv.CabCallLog = make(map[int][config.N]bool)
 
+	// booted tracks whether cab calls have been recovered from a peer after a restart
 	booted := false
 
 	disconnectTicker := time.NewTicker(1 * time.Second)
@@ -57,7 +61,7 @@ func SystemCoordinator(myId int, worldviewCh chan models.Worldview, heartbeatCh 
 
 			debug.PrintLobby(lobby)
 
-		case no := <-newOrder:
+		case no := <-newOrder: // add call to local worldview, seq bump propagates via next heartbeat
 			if no.Cab {
 				wv.CabCalls[no.Floor] = true
 			} else if no.Dir {
@@ -68,19 +72,19 @@ func SystemCoordinator(myId int, worldviewCh chan models.Worldview, heartbeatCh 
 				wv.HallCalls[no.Floor].DownSeq++
 			}
 
-		case ro := <-removeOrder:
-			if ro.Cab {
-				wv.CabCalls[ro.Floor] = false
-			} else if ro.Dir {
-				wv.HallCalls[ro.Floor].Up = false
-				wv.HallCalls[ro.Floor].UpSeq++
+		case removedOrder := <-removeOrder: // clear call from local worldview, seq bump propagates removal
+			if removedOrder.Cab {
+				wv.CabCalls[removedOrder.Floor] = false
+			} else if removedOrder.Dir {
+				wv.HallCalls[removedOrder.Floor].Up = false
+				wv.HallCalls[removedOrder.Floor].UpSeq++
 			} else {
-				wv.HallCalls[ro.Floor].Down = false
-				wv.HallCalls[ro.Floor].DownSeq++
+				wv.HallCalls[removedOrder.Floor].Down = false
+				wv.HallCalls[removedOrder.Floor].DownSeq++
 			}
 
-		case sm := <-statusCh:
-			wv.Status = sm
+		case statusMessage := <-statusCh:
+			wv.Status = statusMessage
 		case <-disconnectTicker.C:
 			DetectDisconnections(lobby, config.DisconnectTimeout)
 		}

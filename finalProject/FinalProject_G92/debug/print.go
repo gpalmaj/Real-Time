@@ -7,7 +7,6 @@ import (
 	"sort"
 )
 
-
 func PrintHallCalls(hc [config.N]models.HallCall) {
 	for i := len(hc) - 1; i >= 0; i-- {
 		up, down := "-", "-"
@@ -53,38 +52,4 @@ func PrintLobby(lobby map[int]models.Node) {
 		fmt.Println()
 	}
 	fmt.Println()
-}
-
-func OrdersFromKB(newOrder, removeOrder chan models.Order) {
-	var no models.Order
-	var floor int
-	var dir string
-
-	for {
-		fmt.Print("Floor and direction (e.g. '2 u'): \n")
-		fmt.Scan(&floor, &dir)
-		if floor >= 0 && floor < config.N {
-			no.Floor = floor
-			switch dir {
-			case "u":
-				no.Dir = true
-				newOrder <- no
-			case "d":
-				no.Dir = false
-				newOrder <- no
-			case "c":
-				no.Cab = true
-				newOrder <- no
-			case "U":
-				no.Dir = true
-				removeOrder <- no
-			case "D":
-				no.Dir = false
-				removeOrder <- no
-			case "C":
-				no.Cab = true
-				removeOrder <- no
-			}
-		}
-	}
 }

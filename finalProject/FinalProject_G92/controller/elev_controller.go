@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// ElevatorController bridges the physical elevator hardware and the coordinator.
+// It polls sensors, runs the FSM, emits new/removed orders, and receives assigned orders.
 func ElevatorController(assignCh, orderCh, rmOrderCh chan models.Order, statusCh chan models.StatusMessage) {
 
 	var fsm ElevatorFSM
@@ -23,6 +25,7 @@ func ElevatorController(assignCh, orderCh, rmOrderCh chan models.Order, statusCh
 	go elevio.PollStopButton(stopCh)
 	go elevio.PollObstructionSwitch(obstrCh)
 
+	// Watchdog: if no floor is reached within 2x travel time, mark elevator as non-operational
 	motorTimer := time.NewTimer(config.BetweenFloorsDuration * 2)
 
 	for {
@@ -56,26 +59,26 @@ func ElevatorController(assignCh, orderCh, rmOrderCh chan models.Order, statusCh
 		case btn := <-btnCh:
 			fmt.Printf("Button: floor %d, type %d\n", btn.Floor, btn.Button)
 
-			var no models.Order
-			no.Floor = btn.Floor
+			var newOrder models.Order
+			newOrder.Floor = btn.Floor
 
 			switch btn.Button {
 			case elevio.BT_HallUp:
-				no.Dir = true
-				orderCh <- no
+				newOrder.Dir = true
+				orderCh <- newOrder
 			case elevio.BT_HallDown:
-				no.Dir = false
-				orderCh <- no
+				newOrder.Dir = false
+				orderCh <- newOrder
 
 			case elevio.BT_Cab:
-				no.Cab = true
+				newOrder.Cab = true
 				prevState := fsm.State
 				fsm.OnButtonPress(btn.Floor, btn.Button)
-				if !fsm.Orders[no.Floor][elevio.BT_Cab] {
 
-				} else {
-					orderCh <- no
+				if fsm.Orders[newOrder.Floor][elevio.BT_Cab] {
+					orderCh <- newOrder
 				}
+
 				if prevState == Idle && fsm.State == DoorOpen {
 					go closeDoors(&fsm, rmOrderCh)
 				}
@@ -92,21 +95,21 @@ func ElevatorController(assignCh, orderCh, rmOrderCh chan models.Order, statusCh
 
 			statusCh <- models.StatusMessage{Floor: fsm.Floor, Direction: int(fsm.Direction), Operational: !obstr}
 
-		case ao := <-assignCh:
+		case assignedOrder := <-assignCh:
 			prevState := fsm.State
-			if ao.Cab {
-				fsm.OnButtonPress(ao.Floor, elevio.BT_Cab)
-				if !fsm.Orders[ao.Floor][elevio.BT_Cab] {
-					rmOrderCh <- models.Order{Floor: ao.Floor, Cab: true}
+			if assignedOrder.Cab {
+				fsm.OnButtonPress(assignedOrder.Floor, elevio.BT_Cab)
+				if !fsm.Orders[assignedOrder.Floor][elevio.BT_Cab] {
+					rmOrderCh <- models.Order{Floor: assignedOrder.Floor, Cab: true}
 				}
 			} else {
 				btn := elevio.BT_HallUp
-				if !ao.Dir {
+				if !assignedOrder.Dir {
 					btn = elevio.BT_HallDown
 				}
-				fsm.OnButtonPress(ao.Floor, btn)
-				if !fsm.Orders[ao.Floor][btn] {
-					rmOrderCh <- ao
+				fsm.OnButtonPress(assignedOrder.Floor, btn)
+				if !fsm.Orders[assignedOrder.Floor][btn] {
+					rmOrderCh <- assignedOrder
 				}
 			}
 			if prevState == Idle && fsm.State == DoorOpen {
@@ -123,6 +126,9 @@ func ElevatorController(assignCh, orderCh, rmOrderCh chan models.Order, statusCh
 	}
 }
 
+// closeDoors waits for the door open duration, handles obstruction, and implements
+// direction-change announcement: if there's an opposite-direction hall call at this floor,
+// it clears it and keeps the door open for another cycle before closing.
 func closeDoors(fsm *ElevatorFSM, rmOrderCh chan models.Order) {
 	for {
 		time.Sleep(config.DoorOpenDuration)

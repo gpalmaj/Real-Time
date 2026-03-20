@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// MergeWorldview adopts the remote's hall call state for any floor where
+// the remote has a higher sequence number. This is how nodes converge.
 func MergeWorldview(local *models.Worldview, remote models.Worldview) {
 	for i := range config.N {
 		if local.HallCalls[i].UpSeq < remote.HallCalls[i].UpSeq {
@@ -20,6 +22,8 @@ func MergeWorldview(local *models.Worldview, remote models.Worldview) {
 	}
 }
 
+// UpdateCabCallLog snapshots every node's cab calls into the local worldview.
+// This log is broadcast in heartbeats so a rebooting node can recover its cab calls.
 func UpdateCabCallLog(wv *models.Worldview, lobby map[int]models.Node) {
 	newLog := make(map[int][config.N]bool, len(lobby))
 	for key := range lobby {
@@ -29,6 +33,8 @@ func UpdateCabCallLog(wv *models.Worldview, lobby map[int]models.Node) {
 	wv.CabCallLog = newLog
 }
 
+// ComputeHallLights determines which hall lights should be on.
+// A light is on only if all alive nodes agree the call exists (consensus).
 func ComputeHallLights(lobby map[int]models.Node) [config.N]models.HallCall {
 	var lights [config.N]models.HallCall
 	for i := range config.N {
@@ -59,6 +65,7 @@ func ComputeHallLights(lobby map[int]models.Node) [config.N]models.HallCall {
 	return lights
 }
 
+// DetectDisconnections marks nodes as dead if no heartbeat has been received within timeout.
 func DetectDisconnections(lobby map[int]models.Node, timeout time.Duration) {
 	for id, node := range lobby {
 		if node.Alive && time.Since(node.Lastseen) > timeout {
