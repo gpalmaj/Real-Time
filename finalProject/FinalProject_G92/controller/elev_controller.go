@@ -115,6 +115,7 @@ func ElevatorController(assignCh, orderCh, rmOrderCh chan models.Order, statusCh
 
 		case <-motorTimer.C:
 			if fsm.State == Moving {
+				fmt.Printf("stuck between floors")
 				statusCh <- models.StatusMessage{Floor: fsm.Floor, Direction: int(fsm.Direction), Operational: false}
 			}
 			motorTimer.Reset(config.BetweenFloorsDuration * 2)
