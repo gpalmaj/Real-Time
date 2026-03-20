@@ -14,7 +14,7 @@ const (
 	//DoorOpenDuration is how much time the door stays open
 	DoorOpenDuration = 3 * time.Second
 	//BetweenFloorsDuration is how much time the elevator takes to go up or down a floor
-	BetweenFloorsDuration = 3 * time.Second
+	BetweenFloorsDuration = 4 * time.Second
 	//Port for elevator server connection
 	ElevatorServerPort = 15657
 )
