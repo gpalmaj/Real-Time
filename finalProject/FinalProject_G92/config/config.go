@@ -10,11 +10,11 @@ const (
 	// DisconnectTimeout is how long before a node is considered disconnected
 	DisconnectTimeout = 700 * time.Millisecond
 	// HeartbeatInterval is how often heartbeats are sent
-	HeartbeatInterval = 100 * time.Millisecond
+	HeartbeatInterval = 50 * time.Millisecond
 	//DoorOpenDuration is how much time the door stays open
 	DoorOpenDuration = 3 * time.Second
 	//BetweenFloorsDuration is how much time the elevator takes to go up or down a floor
-	BetweenFloorsDuration = 2 * time.Second
+	BetweenFloorsDuration = 3 * time.Second
 	//Port for elevator server connection
 	ElevatorServerPort = 15657
 )
