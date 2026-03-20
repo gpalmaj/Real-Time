@@ -88,7 +88,7 @@ func Cost(
 		// checks if should stop at the floor
 		if shouldStop(simFloor, simDir, localOrders) {
 			//adds door cost
-			cost += int(config.DoorOpenDuration)
+			cost += int(config.DoorOpenDuration.Seconds())
 			clearAtFloor(&localOrders, simFloor, simDir)
 			simDir = 0
 		}
@@ -108,7 +108,7 @@ func Cost(
 		}
 
 		//adds time between floors cost
-		cost += int(config.BetweenFloorsDuration)
+		cost += int(config.BetweenFloorsDuration.Seconds())
 		//INFO time is in nanoseconds, so very high number there. Investigate if issues.
 	}
 
