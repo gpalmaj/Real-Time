@@ -34,6 +34,9 @@ func ComputeHallLights(lobby map[int]models.Node) [config.N]models.HallCall {
 	for i := range config.N {
 		allUp := true
 		for _, elevator := range lobby {
+			if !elevator.Alive {
+				continue
+			}
 			if !elevator.Worldview.HallCalls[i].Up {
 				allUp = false
 				break
@@ -43,6 +46,9 @@ func ComputeHallLights(lobby map[int]models.Node) [config.N]models.HallCall {
 
 		allDown := true
 		for _, elevator := range lobby {
+			if !elevator.Alive {
+				continue
+			}
 			if !elevator.Worldview.HallCalls[i].Down {
 				allDown = false
 				break
