@@ -1,0 +1,28 @@
+6d9d
+8/9
+-Strong module interface with clear responsibilities
+-Process pairs backup recovery is really well made
+-Order folder seem to be a little complex, might have been better to split some of the files contained here into other modules
+-
+
+0910
+8
+-Could maybe drop some of the abbreviations like wv and hb for easier navigating, though it is stated before what it means
+-Easy to get blind in your own code when writing abbreviations we understand
+-Coordinator might still be a little complex and overwhelmed with tasks
+-
+
+fdd2
+6/7
+-Huge controller module, should be separated into different responsibilities
+-Still contains TODO comments, necessary? Lots of comments as well, which is nice, but code should be clear enough to not need that much explaining
+-Very hard to navigate through the controller
+-MustAssignHallOrders can shut down whole path, might be better to make work around
+-Well thought error handling and backup recovery
+-
+
+86ab
+7/8
+-Strong module interface, clear and understandable responsibilities for each module, good folder interface
+-Distributor a little complex?
+-
