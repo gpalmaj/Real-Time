@@ -1,28 +1,38 @@
 6d9d
-8/9
--Strong module interface with clear responsibilities
--Process pairs backup recovery is really well made
--Order folder seem to be a little complex, might have been better to split some of the files contained here into other modules
--
+8
+-Run function could be split into initialization function and controller action for itself to clearly divide these two responsibilities
+-Same could be said for main, handling of incoming channel updates could be its own file to make a cleaner set. Makes no practical difference though
+-Module structure and interface is really clear and understandable with obvious responsibilities for each file. Same goes for global variables and constants
+-The state_sync file is a strong feature that ensures the shared view of the states in the system is updated as it should
+-Functions have strong and clear names, the code bodies are easy to follow, and they are easy to trace for information. This also makes the system as a whole really easy to navigate and understand
+-The proccess pairs backup recovery is a strong and well made feature, and it shows good levels in the attention of details to backup solutions
+-Does not have a README. Not a big problem at all, but could be useful if one were tio run the system
+-Gut feeling 9 out of 10. Overall score is set to a strong 8 as minor details in the structuring (see point 1 and 2) could lead to a messier system if the project is expanding
 
 0910
 8
--Could maybe drop some of the abbreviations like wv and hb for easier navigating, though it is stated before what it means
--Easy to get blind in your own code when writing abbreviations we understand
--Coordinator might still be a little complex and overwhelmed with tasks
--
+-system_coordinator has a lot of responsibilities, and the interface is large. In hindsight we would have liked to split this into smaller interfaces with more concise responsibilities
+-There is a little inconsistency with the direction as some of the values are booleans and some integers. In hall calls there are up and down for booleans, order structure has a boolean for direction (false for down and true for up), and elevator direction is an integer with -1 being down, 0 stop, and 1 up
+-Some of the abbreviations could maybe be dropped for easier navigating, like for example wv for worldview and hb for heartbeat. Although they are already stated and defined, it is easy to get blind on your own code when writing abbreviations we understand
 
 fdd2
-6/7
--Huge controller module, should be separated into different responsibilities
--Still contains TODO comments, necessary? Lots of comments as well, which is nice, but code should be clear enough to not need that much explaining
--Very hard to navigate through the controller
--MustAssignHallOrders can shut down whole path, might be better to make work around
--Well thought error handling and backup recovery
--
+6
+-Main function has a lot of functionality with the select cases. These should probably be put into a separate controller/manager to ensure clear and distinct responsibility
+-A lot of functions are declared in the main file. It should only contain the main function which is the entry point. Also, andHallOrders is a little unclear name for a function
+-Naming seeems a little messy and might be hard to maintain or update. Names like moreOrders, moreOrdersAbove and more should be simplified to make it easier to adjust and expand in the future
+-A lot of TODO comments and notes that make the system seem unpolished and not very optimized. Examples are line 278 and 875 in the controller file which make it seem like the project is not fully finished
+-The controller file is way too big. It contains a lot of different functionality and responsibilities, making it more vulnerable to complexity problems if the project expands. It also makes it harder to navigate the system
+-Although the controller is big, it has partially clear naming and commenting about each separate "part", for example Elevator Controller, Public Functions and Subscribe and Notify.
+-old_peers seems to be an old file, should maybe be removed as it is not very useful?
+-Snapshot is a little unclear naming for something that seems to be a kind of worldview
+-Gut feeling 5 out of 10. It would be hard to clean everything up as the controller mainly is too big and complex. That is why we also think we would start over if we had to adjust
 
 86ab
-7/8
--Strong module interface, clear and understandable responsibilities for each module, good folder interface
--Distributor a little complex?
--
+7
+-Both elevioAdapter and fsmStateToBehaviour should be put to another file than main as it should only contain the entry point which is the main function
+-cost_fns folder in costfunction is empty, is something supposed to be here?
+-Module interface is strong, files have clear responsibilities, and the functions are easy to follow and trace
+-Some variables have vague names with little to no commenting making it hard to understand the meaning of them. One example is finReqCh in main, maybe not use an abbreviation for this
+-ElevatorState is used as a type in both types.go and worldview.go. They should not have the same names as this could lead to misunderstandings when expanding the prohject
+-Some comments are in norwegian, making it a little difficult for foreign speakers to understand, but the system itself is understandable though. Also, heis is used as a module name in go.mod, should probably be elevator for consistency with the files and functions
+-Gut feeling 7 out of 10
